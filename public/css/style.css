@@ -2194,13 +2194,11 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   .fitness-snapshot { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* ─── PHONE (≤ 768px — iPhone, Android) ─────────────────────────── */
+/* ─── PHONE (≤ 768px) — pensé pour iPhone, simple et utilisable ───── */
 @media (max-width: 768px) {
-  body {
-    background-attachment: scroll;
-  }
+  body { background-attachment: scroll; }
 
-  /* Sidebar becomes a bottom nav bar */
+  /* ── BOTTOM NAV (barre du bas, style iOS) ── */
   .sidebar {
     width: 100%;
     height: auto;
@@ -2210,11 +2208,10 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
     flex-direction: row;
     border-right: none;
     border-top: 1px solid var(--border-strong);
-    padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     z-index: 200;
-    background: rgba(8, 7, 16, 0.92);
+    background: rgba(8, 7, 16, 0.96);
     justify-content: center;
-    align-items: center;
     backdrop-filter: blur(24px);
   }
 
@@ -2227,210 +2224,199 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   .nav-links {
     display: flex;
     flex-direction: row;
-    padding: 0;
+    padding: 0 4px;
     width: 100%;
-    max-width: 100%;
     justify-content: space-around;
-    align-items: stretch;
     margin: 0;
+    gap: 2px;
   }
-
-  .nav-links li {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-  }
+  .nav-links li { flex: 1; min-width: 0; display: flex; }
 
   .nav-link {
     flex-direction: column;
     gap: 3px;
-    padding: 8px 4px;
+    padding: 8px 2px;
     font-size: 9px;
-    letter-spacing: 0.05em;
+    letter-spacing: 0;
     text-align: center;
     margin-bottom: 0;
     width: 100%;
-    border-radius: 0;
+    border-radius: 10px;
     line-height: 1.1;
   }
-
-  .nav-link.active { background: transparent; }
-
-  .nav-link .icon { width: 20px; height: 20px; opacity: 0.85; }
-  .nav-link.active .icon { opacity: 1; color: var(--violet-pale); }
-
-  .nav-link.active::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: auto;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--violet-soft), var(--pink-soft));
-    box-shadow: 0 0 8px var(--violet-soft);
-    border-radius: 99px;
+  .nav-link .icon { width: 22px; height: 22px; opacity: 0.7; }
+  .nav-link.active {
+    background: rgba(139, 92, 246, 0.18);
+    color: var(--violet-pale);
   }
+  .nav-link.active .icon { opacity: 1; color: var(--violet-pale); }
+  .nav-link.active::before { display: none; }
 
-  /* Main content uses full width + leaves room for bottom nav */
+  /* ── MAIN ── */
   .main-content {
     margin-left: 0;
-    padding: 0 14px calc(80px + env(safe-area-inset-bottom, 0px));
+    padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
     max-width: 100%;
   }
 
-  /* Mobile sticky header (avatar + level + XP + streak + settings) */
+  /* ── STICKY HEADER MOBILE ── */
   .mobile-header {
     display: flex;
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(8, 7, 16, 0.92);
+    background: rgba(8, 7, 16, 0.96);
     border-bottom: 1px solid var(--border);
-    padding: 10px 14px;
+    padding: 12px 16px;
     gap: 12px;
     align-items: center;
     backdrop-filter: blur(24px);
-    margin: 0 -14px 16px;
+    margin: 0 -16px 18px;
   }
-
   .mobile-avatar {
-    width: 34px; height: 34px;
+    width: 36px; height: 36px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--violet), var(--pink));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: white;
     flex-shrink: 0;
-    box-shadow: 0 0 14px var(--glow-violet);
   }
-
   .mobile-progress { flex: 1; min-width: 0; }
-
   .mobile-level {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--violet-soft);
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
-
   .mobile-progress .xp-bar-bg { height: 3px; }
-
   .mobile-streak {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--pink-soft);
-    font-size: 13px;
-    font-weight: 500;
+    display: flex; align-items: center; gap: 4px;
+    color: var(--pink-soft); font-size: 14px; font-weight: 500;
     flex-shrink: 0;
   }
-  .mobile-streak .icon { width: 14px; height: 14px; }
-
+  .mobile-streak .icon { width: 15px; height: 15px; }
   .mobile-settings {
     background: transparent;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px;
+    border-radius: 10px;
+    padding: 8px;
     color: var(--text-dim);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .mobile-settings .icon { width: 16px; height: 16px; }
-  .mobile-settings:active { background: rgba(139, 92, 246, 0.08); color: var(--violet-pale); }
+  .mobile-settings .icon { width: 18px; height: 18px; }
 
-  /* Page header stacks vertically */
+  /* ── PAGE HEADER ── */
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 22px;
-    padding-bottom: 14px;
+    padding-bottom: 16px;
   }
-
-  .page-eyebrow { font-size: 9px; letter-spacing: 0.3em; margin-bottom: 8px; }
+  .page-eyebrow { display: none; } /* moins de bruit visuel */
   .page-title { font-size: 30px; line-height: 1.1; }
-  .page-subtitle { font-size: 12px; margin-top: 10px; }
-
+  .page-subtitle { font-size: 13px; margin-top: 6px; line-height: 1.5; }
   .date-display { font-size: 12px; padding: 6px 12px; }
-
   .page-header > button,
   .page-header > .xp-reward-badge {
     align-self: stretch;
     width: 100%;
     text-align: center;
     justify-content: center;
+    margin-top: 4px;
   }
 
-  /* Cards more compact */
+  /* ── CARDS ── */
   .card {
     padding: 18px 16px;
     margin-bottom: 14px;
-    border-radius: 12px;
+    border-radius: 14px;
   }
   .card-header { margin-bottom: 14px; }
   .card h3 { font-size: 16px; margin-bottom: 12px; }
 
-  /* Stats grids: 2 cols on phone */
+  /* ── TOUT EN SINGLE COLUMN ── */
   .stats-grid,
   .fitness-snapshot,
   .stats-summary-grid,
-  .badges-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .stat-card { padding: 16px 12px; }
-  .stat-value { font-size: 26px; }
-  .stat-label { font-size: 9px; letter-spacing: 0.18em; }
-
-  .snap-card { padding: 14px 12px; }
-  .snap-value { font-size: 22px; }
-  .snap-target { font-size: 9px; }
-  .snap-unit { font-size: 12px; }
-
-  /* Single-column for double layouts */
+  .badges-grid,
   .charts-grid,
   .dashboard-grid,
   .fitness-grid,
   .journal-layout,
   .physique-layout,
   .coach-layout,
-  .habits-grid {
+  .habits-grid,
+  .nutrition-form,
+  .profile-form,
+  .measurement-form,
+  .supp-quick-row {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
-  /* Activity calendar: 10 cols, bigger cells */
+  /* ── STAT CARDS (horizontal sur mobile pour gagner de la place) ── */
+  .stat-card {
+    padding: 18px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+  }
+  .stat-card .icon { margin: 0; flex-shrink: 0; opacity: 0.7; }
+  .stat-value { font-size: 28px; flex: 1; line-height: 1; }
+  .stat-label {
+    margin: 0;
+    text-align: right;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    max-width: 110px;
+  }
+
+  /* ── SNAPSHOT CARDS (Fitness — horizontal aussi) ── */
+  .snap-card {
+    padding: 16px 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+  }
+  .snap-label {
+    grid-column: 1;
+    margin-bottom: 0;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+  .snap-value {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    font-size: 26px;
+    text-align: right;
+  }
+  .snap-target {
+    grid-column: 1;
+    margin-top: 0;
+    font-size: 10px;
+  }
+  .snap-bar {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+  }
+
+  /* ── SUMMARY CARDS (Stats page) ── */
+  .stat-summary { padding: 22px 18px; }
+  .summary-value { font-size: 32px; }
+  .summary-label { font-size: 10px; }
+
+  /* ── ACTIVITY CALENDAR ── */
   .activity-calendar {
     grid-template-columns: repeat(10, 1fr);
     gap: 5px;
   }
 
-  /* Workout type buttons: 3 then 2 */
-  .workout-type-select { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .workout-type-btn { padding: 12px 4px; font-size: 10px; }
-
-  /* Forms */
-  .nutrition-form,
-  .profile-form,
-  .measurement-form {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .nutrition-form .full,
-  .profile-form .full,
-  .measurement-form .full { grid-column: 1 / -1; }
-
-  /* iOS zoom prevention: inputs must be ≥ 16px */
+  /* ── INPUTS (16px = pas de zoom iOS) ── */
   .form-input,
   .chat-input,
   .set-input,
@@ -2444,110 +2430,136 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   select {
     font-size: 16px;
   }
-  .form-input { padding: 12px 14px; }
+  .form-input { padding: 14px 16px; }
+  .form-group label { font-size: 11px; margin-bottom: 8px; }
 
-  /* Habits */
-  .habit-card { padding: 18px 16px; min-height: auto; }
-  .habit-name { font-size: 17px; }
-
-  /* Goals */
-  .goal-item {
-    flex-wrap: wrap;
-    padding: 14px 16px;
-    gap: 10px;
+  /* ── BUTTONS — tap targets 44px+ ── */
+  .btn {
+    padding: 14px 22px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
   }
-  .goal-info { width: 100%; }
-  .goal-meta {
-    width: 100%;
-    margin-top: 0;
-    gap: 6px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+  .btn-large { padding: 18px; font-size: 12px; }
+
+  /* ── HABITS ── */
+  .habit-card {
+    padding: 20px 18px;
+    min-height: auto;
   }
-  .goal-meta .btn {
-    flex: 1;
-    min-width: 130px;
-    padding: 10px;
-    font-size: 10px;
+  .habit-name { font-size: 18px; }
+  .habit-check-btn { padding: 14px; font-size: 12px; }
+  .habit-number-save { padding: 14px; font-size: 11px; }
+  .habit-number-row input { padding: 14px 60px 14px 16px; }
+
+  /* ── MOOD SELECTOR ── */
+  .mood-selector {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
   }
+  .mood-btn { height: 48px; font-size: 18px; }
 
-  /* Workouts — set row tighter */
-  .exercise-block { padding: 14px 12px; }
-  .exercise-name { font-size: 16px; }
-  .set-row {
-    grid-template-columns: 26px 1fr 1fr 26px;
-    gap: 6px;
-  }
-  .set-input { padding: 8px 10px; font-size: 14px; }
-  .set-input-wrap input { padding-right: 30px; }
-
-  /* Compléments quick row */
-  .supp-quick-row { gap: 8px; }
-  .supp-quick-btn { padding: 16px 10px; }
-
-  /* Hadith */
-  .hadith-text { font-size: 17px; }
-
-  /* Modals — full width, sit at top with safe margin */
-  .modal-overlay { padding: 16px; align-items: flex-start; padding-top: 60px; }
-  .modal {
-    width: 100%;
-    max-width: 100%;
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-    border-radius: 14px;
-  }
-  .modal-header { padding: 16px 20px; }
-  .modal-header h2 { font-size: 20px; }
-  .modal-body { padding: 18px 20px; }
-  .modal-footer { padding: 14px 20px; }
-  .modal-footer .btn { flex: 1; }
-
-  /* Toasts — above bottom nav */
-  .toast-container {
-    left: 14px;
-    right: 14px;
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
-  .toast { min-width: 0; width: 100%; }
-
-  /* Level up */
-  .levelup-ring { width: 96px; height: 96px; }
-  .levelup-content h2 { font-size: 48px; }
-  .levelup-level { font-size: 20px; }
-
-  /* CTA */
-  .cta-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-  }
-  .cta-content .btn { margin-left: 0; width: 100%; justify-content: center; }
-
-  /* Goals tabs */
+  /* ── GOALS ── */
   .goals-tabs {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .tab-btn { padding: 10px 14px; font-size: 10px; white-space: nowrap; }
-
-  /* Recent entries / sessions */
-  .session-row, .intake-row, .measurement-row {
+  .tab-btn {
+    padding: 12px 18px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .goal-item {
     flex-wrap: wrap;
+    padding: 16px 18px;
+    gap: 12px;
   }
-  .measurement-row {
-    grid-template-columns: 1fr 1fr 30px;
+  .goal-info { width: 100%; }
+  .goal-meta {
+    width: 100%;
+    margin-top: 0;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
   }
-}
+  .goal-meta .btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px;
+    font-size: 10px;
+  }
 
-/* Very narrow phones (≤ 380px) — single column for everything */
-@media (max-width: 380px) {
-  .stats-grid,
-  .stats-summary-grid,
-  .badges-grid { grid-template-columns: 1fr; }
-  .fitness-snapshot { grid-template-columns: 1fr; }
-  .activity-calendar { grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .workout-type-select { grid-template-columns: repeat(2, 1fr); }
-  .nutrition-form, .profile-form, .measurement-form { grid-template-columns: 1fr; }
+  /* ── WORKOUT ── */
+  .workout-type-select { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .workout-type-btn { padding: 14px 4px; font-size: 10px; }
+  .exercise-block { padding: 16px 14px; }
+  .exercise-name { font-size: 17px; }
+  .set-row {
+    grid-template-columns: 26px 1fr 1fr 30px;
+    gap: 6px;
+  }
+  .set-input { padding: 10px 12px; }
+  .set-input-wrap input { padding-right: 32px; }
+  .set-add-btn { padding: 10px; }
+
+  /* ── COMPLÉMENTS ── */
+  .supp-quick-btn { padding: 20px 16px; }
+
+  /* ── HADITH ── */
+  .hadith-card { padding: 22px 18px; }
+  .hadith-text { font-size: 18px; line-height: 1.65; }
+
+  /* ── MODALS (centrés, larges) ── */
+  .modal-overlay {
+    padding: 20px;
+    align-items: center;
+  }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px;
+  }
+  .modal-header { padding: 18px 22px; }
+  .modal-header h2 { font-size: 21px; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { padding: 16px 22px; gap: 10px; }
+  .modal-footer .btn { flex: 1; }
+
+  /* ── TOASTS au-dessus de la nav ── */
+  .toast-container {
+    left: 14px;
+    right: 14px;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+  .toast { min-width: 0; width: 100%; }
+
+  /* ── LEVEL UP ── */
+  .levelup-ring { width: 90px; height: 90px; }
+  .levelup-content h2 { font-size: 42px; }
+  .levelup-level { font-size: 19px; }
+
+  /* ── CTA ── */
+  .cta-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .cta-content .btn { margin-left: 0; width: 100%; justify-content: center; }
+
+  /* ── Mesures ── */
+  .measurement-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 14px;
+  }
+  .measurement-date { grid-column: 1 / -1; font-size: 13px; }
+
+  /* ── Intake / session rows ── */
+  .session-row, .intake-row {
+    flex-wrap: wrap;
+    padding: 14px;
+  }
 }
