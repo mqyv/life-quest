@@ -107,6 +107,24 @@
   </nav>
 
   <main class="main-content">
+    <!-- Mobile-only header (level + xp bar + streak) -->
+    <div class="mobile-header">
+      <div class="mobile-avatar" id="mobile-avatar">?</div>
+      <div class="mobile-progress">
+        <div class="mobile-level" id="mobile-level">Niveau 1</div>
+        <div class="xp-bar-bg">
+          <div class="xp-bar-fill" id="mobile-xp-bar"></div>
+        </div>
+      </div>
+      <div class="mobile-streak">
+        <svg class="icon"><use href="#i-flame"/></svg>
+        <span id="mobile-streak">0</span>
+      </div>
+      <button class="mobile-settings" onclick="openSettingsModal()" aria-label="Paramètres">
+        <svg class="icon"><use href="#i-settings"/></svg>
+      </button>
+    </div>
+
     <!-- DASHBOARD -->
     <section class="page active" id="page-dashboard">
       <div class="page-header">

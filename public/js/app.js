@@ -110,12 +110,24 @@ async function loadUser() {
 function updateSidebar() {
   const u = state.user;
   if (!u) return;
+  const initial = (u.name || 'P')[0].toUpperCase();
+  const xpPct = `${Math.min((u.currentXp / u.xpNeeded) * 100, 100)}%`;
+  // Desktop sidebar
   document.getElementById('nav-name').textContent = u.name;
   document.getElementById('nav-level').textContent = `Niveau ${u.level}`;
-  document.getElementById('nav-avatar').textContent = u.name[0].toUpperCase();
+  document.getElementById('nav-avatar').textContent = initial;
   document.getElementById('nav-xp-text').textContent = `${u.currentXp} / ${u.xpNeeded}`;
-  document.getElementById('nav-xp-bar').style.width = `${Math.min((u.currentXp / u.xpNeeded) * 100, 100)}%`;
+  document.getElementById('nav-xp-bar').style.width = xpPct;
   document.getElementById('nav-streak-count').textContent = u.streak;
+  // Mobile sticky header
+  const mAv = document.getElementById('mobile-avatar');
+  const mLv = document.getElementById('mobile-level');
+  const mBar = document.getElementById('mobile-xp-bar');
+  const mSt = document.getElementById('mobile-streak');
+  if (mAv) mAv.textContent = initial;
+  if (mLv) mLv.textContent = `Niveau ${u.level}`;
+  if (mBar) mBar.style.width = xpPct;
+  if (mSt) mSt.textContent = u.streak;
 }
 
 async function loadConfig() {

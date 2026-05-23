@@ -2181,6 +2181,9 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   letter-spacing: 0.1em;
 }
 
+/* ─── MOBILE HEADER (hidden on desktop) ─────────────────────────── */
+.mobile-header { display: none; }
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .stats-grid, .stats-summary-grid { grid-template-columns: repeat(2, 1fr); }
@@ -2188,6 +2191,363 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   .mood-selector { grid-template-columns: repeat(5, 1fr); }
   .coach-layout, .fitness-grid { grid-template-columns: 1fr; }
   .coach-sidebar, .fitness-sidebar { position: static; }
-  .fitness-snapshot { grid-template-columns: repeat(2, 1fr); }
+  .fitness-snapshot { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ─── PHONE (≤ 768px — iPhone, Android) ─────────────────────────── */
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  /* Sidebar becomes a bottom nav bar */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border-strong);
+    padding: 4px 0 calc(4px + env(safe-area-inset-bottom, 0px));
+    z-index: 200;
+    background: rgba(8, 7, 16, 0.92);
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(24px);
+  }
+
+  .sidebar-logo,
+  .player-card,
+  .xp-section,
+  .streak-badge,
+  .sidebar-footer { display: none; }
+
+  .nav-links {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    justify-content: space-around;
+    align-items: stretch;
+    margin: 0;
+  }
+
+  .nav-links li {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+  }
+
+  .nav-link {
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 4px;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    text-align: center;
+    margin-bottom: 0;
+    width: 100%;
+    border-radius: 0;
+    line-height: 1.1;
+  }
+
+  .nav-link.active { background: transparent; }
+
+  .nav-link .icon { width: 20px; height: 20px; opacity: 0.85; }
+  .nav-link.active .icon { opacity: 1; color: var(--violet-pale); }
+
+  .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--violet-soft), var(--pink-soft));
+    box-shadow: 0 0 8px var(--violet-soft);
+    border-radius: 99px;
+  }
+
+  /* Main content uses full width + leaves room for bottom nav */
+  .main-content {
+    margin-left: 0;
+    padding: 0 14px calc(80px + env(safe-area-inset-bottom, 0px));
+    max-width: 100%;
+  }
+
+  /* Mobile sticky header (avatar + level + XP + streak + settings) */
+  .mobile-header {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(8, 7, 16, 0.92);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    gap: 12px;
+    align-items: center;
+    backdrop-filter: blur(24px);
+    margin: 0 -14px 16px;
+  }
+
+  .mobile-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--pink));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 0 14px var(--glow-violet);
+  }
+
+  .mobile-progress { flex: 1; min-width: 0; }
+
+  .mobile-level {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--violet-soft);
+    margin-bottom: 4px;
+  }
+
+  .mobile-progress .xp-bar-bg { height: 3px; }
+
+  .mobile-streak {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--pink-soft);
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .mobile-streak .icon { width: 14px; height: 14px; }
+
+  .mobile-settings {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .mobile-settings .icon { width: 16px; height: 16px; }
+  .mobile-settings:active { background: rgba(139, 92, 246, 0.08); color: var(--violet-pale); }
+
+  /* Page header stacks vertically */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+  }
+
+  .page-eyebrow { font-size: 9px; letter-spacing: 0.3em; margin-bottom: 8px; }
+  .page-title { font-size: 30px; line-height: 1.1; }
+  .page-subtitle { font-size: 12px; margin-top: 10px; }
+
+  .date-display { font-size: 12px; padding: 6px 12px; }
+
+  .page-header > button,
+  .page-header > .xp-reward-badge {
+    align-self: stretch;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Cards more compact */
+  .card {
+    padding: 18px 16px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+  }
+  .card-header { margin-bottom: 14px; }
+  .card h3 { font-size: 16px; margin-bottom: 12px; }
+
+  /* Stats grids: 2 cols on phone */
+  .stats-grid,
+  .fitness-snapshot,
+  .stats-summary-grid,
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card { padding: 16px 12px; }
+  .stat-value { font-size: 26px; }
+  .stat-label { font-size: 9px; letter-spacing: 0.18em; }
+
+  .snap-card { padding: 14px 12px; }
+  .snap-value { font-size: 22px; }
+  .snap-target { font-size: 9px; }
+  .snap-unit { font-size: 12px; }
+
+  /* Single-column for double layouts */
+  .charts-grid,
+  .dashboard-grid,
+  .fitness-grid,
+  .journal-layout,
+  .physique-layout,
+  .coach-layout,
+  .habits-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* Activity calendar: 10 cols, bigger cells */
+  .activity-calendar {
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+  }
+
+  /* Workout type buttons: 3 then 2 */
+  .workout-type-select { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .workout-type-btn { padding: 12px 4px; font-size: 10px; }
+
+  /* Forms */
+  .nutrition-form,
+  .profile-form,
+  .measurement-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .nutrition-form .full,
+  .profile-form .full,
+  .measurement-form .full { grid-column: 1 / -1; }
+
+  /* iOS zoom prevention: inputs must be ≥ 16px */
+  .form-input,
+  .chat-input,
+  .set-input,
+  .journal-textarea,
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  .form-input { padding: 12px 14px; }
+
+  /* Habits */
+  .habit-card { padding: 18px 16px; min-height: auto; }
+  .habit-name { font-size: 17px; }
+
+  /* Goals */
+  .goal-item {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .goal-info { width: 100%; }
+  .goal-meta {
+    width: 100%;
+    margin-top: 0;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .goal-meta .btn {
+    flex: 1;
+    min-width: 130px;
+    padding: 10px;
+    font-size: 10px;
+  }
+
+  /* Workouts — set row tighter */
+  .exercise-block { padding: 14px 12px; }
+  .exercise-name { font-size: 16px; }
+  .set-row {
+    grid-template-columns: 26px 1fr 1fr 26px;
+    gap: 6px;
+  }
+  .set-input { padding: 8px 10px; font-size: 14px; }
+  .set-input-wrap input { padding-right: 30px; }
+
+  /* Compléments quick row */
+  .supp-quick-row { gap: 8px; }
+  .supp-quick-btn { padding: 16px 10px; }
+
+  /* Hadith */
+  .hadith-text { font-size: 17px; }
+
+  /* Modals — full width, sit at top with safe margin */
+  .modal-overlay { padding: 16px; align-items: flex-start; padding-top: 60px; }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    border-radius: 14px;
+  }
+  .modal-header { padding: 16px 20px; }
+  .modal-header h2 { font-size: 20px; }
+  .modal-body { padding: 18px 20px; }
+  .modal-footer { padding: 14px 20px; }
+  .modal-footer .btn { flex: 1; }
+
+  /* Toasts — above bottom nav */
+  .toast-container {
+    left: 14px;
+    right: 14px;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  .toast { min-width: 0; width: 100%; }
+
+  /* Level up */
+  .levelup-ring { width: 96px; height: 96px; }
+  .levelup-content h2 { font-size: 48px; }
+  .levelup-level { font-size: 20px; }
+
+  /* CTA */
+  .cta-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .cta-content .btn { margin-left: 0; width: 100%; justify-content: center; }
+
+  /* Goals tabs */
+  .goals-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn { padding: 10px 14px; font-size: 10px; white-space: nowrap; }
+
+  /* Recent entries / sessions */
+  .session-row, .intake-row, .measurement-row {
+    flex-wrap: wrap;
+  }
+  .measurement-row {
+    grid-template-columns: 1fr 1fr 30px;
+  }
+}
+
+/* Very narrow phones (≤ 380px) — single column for everything */
+@media (max-width: 380px) {
+  .stats-grid,
+  .stats-summary-grid,
+  .badges-grid { grid-template-columns: 1fr; }
+  .fitness-snapshot { grid-template-columns: 1fr; }
+  .activity-calendar { grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .workout-type-select { grid-template-columns: repeat(2, 1fr); }
+  .nutrition-form, .profile-form, .measurement-form { grid-template-columns: 1fr; }
 }
