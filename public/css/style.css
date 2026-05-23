@@ -2181,6 +2181,75 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   letter-spacing: 0.1em;
 }
 
+/* ─── GROCERY REMINDER ──────────────────────────────────────────── */
+.grocery-card { position: relative; }
+.grocery-next {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.grocery-day {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 24px;
+  color: var(--text);
+  text-transform: capitalize;
+  line-height: 1.2;
+}
+.grocery-countdown {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--violet-soft);
+  margin-top: 6px;
+}
+.grocery-countdown.today { color: var(--pink-soft); }
+.grocery-section { margin-bottom: 16px; }
+.grocery-section-title {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.grocery-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.grocery-list li {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border-soft);
+  font-size: 13px;
+  color: var(--text-2);
+  letter-spacing: 0.02em;
+}
+.grocery-list li:last-child { border-bottom: none; }
+.grocery-periodic li {
+  padding: 10px 0;
+}
+.grocery-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.grocery-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--violet-soft);
+  flex-shrink: 0;
+}
+.grocery-check-text { flex: 1; }
+.grocery-check-name { color: var(--text); font-weight: 500; }
+.grocery-check-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
 /* ─── MEAL PLAN ─────────────────────────────────────────────────── */
 .meal-item {
   padding: 14px 16px;

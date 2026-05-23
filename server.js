@@ -22,16 +22,24 @@ function writeJSON(file, data) {
   fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2));
 }
 
-function today() { return new Date().toISOString().split('T')[0]; }
+// Format a Date as YYYY-MM-DD using LOCAL date components (no UTC shift).
+function localDateStr(d) {
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function today() { return localDateStr(); }
 function yesterday() {
   const d = new Date(); d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
+  return localDateStr(d);
 }
 function weekStart(dateStr) {
-  const d = dateStr ? new Date(dateStr) : new Date();
+  const d = dateStr ? new Date(dateStr + 'T00:00:00') : new Date();
   const day = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - day);
-  return d.toISOString().split('T')[0];
+  return localDateStr(d);
 }
 
 function initData() {
@@ -96,6 +104,13 @@ function initData() {
   if (!readJSON('supplement_intakes.json')) writeJSON('supplement_intakes.json', []);
   if (!readJSON('bodyweight.json')) writeJSON('bodyweight.json', []);
 
+  // Migration: ajoute le suivi des courses dans le profil
+  const prof = readJSON('profile.json');
+  if (prof && !prof.groceries) {
+    prof.groceries = { lastShopping: null, stocks: defaultStocks() };
+    writeJSON('profile.json', prof);
+  }
+
   // Migration: cardio reduit à Tapis + Escalier (idempotent)
   const exos = readJSON('exercises.json');
   if (exos && !exos.some(e => e.name === 'Escalier' && !e.is_custom)) {
@@ -108,6 +123,39 @@ function initData() {
     console.log('Migration: cardio remplacé par Tapis + Escalier');
   }
 }
+
+function defaultStocks() {
+  return {
+    whey:     { lastBought: null, intervalDays: 60 },
+    creatine: { lastBought: null, intervalDays: 60 },
+    rice:     { lastBought: null, intervalDays: 42 },
+    pasta:    { lastBought: null, intervalDays: 35 },
+    oats:     { lastBought: null, intervalDays: 42 },
+    oil:      { lastBought: null, intervalDays: 56 },
+    cheese:   { lastBought: null, intervalDays: 14 }
+  };
+}
+
+const STOCK_LABELS = {
+  whey:     { name: 'Whey 2 kg',                price: '~40 €',   store: 'Carrefour ou Décathlon' },
+  creatine: { name: 'Créatine 300 g',           price: '~15 €',   store: 'Carrefour ou Décathlon' },
+  rice:     { name: 'Riz blanc 1 kg',           price: '~1,20 €', store: 'Carrefour' },
+  pasta:    { name: 'Pâtes complètes 500g ×2',  price: '~1,80 €', store: 'Carrefour' },
+  oats:     { name: 'Flocons d\'avoine 1 kg',   price: '~1,40 €', store: 'Lidl' },
+  oil:      { name: 'Huile d\'olive 500 ml',    price: '~3 €',    store: 'Carrefour' },
+  cheese:   { name: 'Emmental râpé 200 g',      price: '~1,80 €', store: 'Carrefour' }
+};
+
+const WEEKLY_ITEMS = [
+  'Œufs (24, soit 2 boîtes)',
+  'Skyr 0% nature × 4 pots',
+  'Bananes 1,5 kg',
+  'Pommes 1 kg',
+  'Légumes surgelés 1 kg',
+  'Lait demi-écrémé 1 L',
+  'Poulet 800 g - 1 kg (ou cuisses)',
+  'Thon en boîte à l\'eau × 4'
+];
 
 function seedExercises() {
   const exos = [
@@ -862,7 +910,7 @@ app.get('/api/stats', (req, res) => {
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = localDateStr(d);
     const entry = entries.find(e => e.date === dateStr);
     const habitsThatDay = habitLogs.filter(l => l.date === dateStr);
     const xpThatDay = (entry ? entry.xpEarned : 0) + habitsThatDay.reduce((s, l) => s + (l.xpEarned || 0), 0);
@@ -1283,6 +1331,82 @@ app.get('/api/fitness/dashboard', (req, res) => {
     active_session: activeSession,
     last_sessions: sessions.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0,5)
   });
+});
+
+// ─── GROCERIES (rappel automatique) ──────────────────────────────────────
+function getNextShoppingInfo() {
+  const profile = readJSON('profile.json') || {};
+  if (!profile.groceries) profile.groceries = { lastShopping: null, stocks: defaultStocks() };
+  const stocks = profile.groceries.stocks || {};
+  const todayStr = today();
+  const todayDate = new Date(todayStr + 'T00:00:00');
+  const day = todayDate.getDay(); // 0 = Sunday
+
+  // Compute next Sunday
+  let target = new Date(todayDate);
+  if (day === 0) {
+    if (profile.groceries.lastShopping === todayStr) {
+      target.setDate(target.getDate() + 7);
+    }
+  } else {
+    target.setDate(target.getDate() + ((7 - day) % 7));
+  }
+  const nextStr = localDateStr(target);
+  const daysUntil = Math.round((target - todayDate) / 86400000);
+
+  // Periodic items due (within 3 days of interval)
+  const due = [];
+  for (const [key, stock] of Object.entries(stocks)) {
+    const label = STOCK_LABELS[key];
+    if (!label) continue;
+    let isDue = false;
+    if (!stock.lastBought) {
+      isDue = true;
+    } else {
+      const last = new Date(stock.lastBought + 'T00:00:00');
+      const daysToNext = Math.round((target - last) / 86400000);
+      isDue = daysToNext >= stock.intervalDays - 3;
+    }
+    if (isDue) due.push({
+      key,
+      name: label.name,
+      price: label.price,
+      store: label.store,
+      lastBought: stock.lastBought,
+      intervalDays: stock.intervalDays
+    });
+  }
+
+  return {
+    nextShoppingDate: nextStr,
+    daysUntil,
+    isToday: daysUntil === 0,
+    lastShopping: profile.groceries.lastShopping,
+    weeklyItems: WEEKLY_ITEMS,
+    periodicDue: due
+  };
+}
+
+app.get('/api/groceries', (req, res) => {
+  res.json(getNextShoppingInfo());
+});
+
+app.post('/api/groceries/done', (req, res) => {
+  const { stocksRestocked } = req.body || {};
+  const profile = readJSON('profile.json') || {};
+  if (!profile.groceries) profile.groceries = { lastShopping: null, stocks: defaultStocks() };
+  profile.groceries.lastShopping = today();
+  if (Array.isArray(stocksRestocked)) {
+    for (const key of stocksRestocked) {
+      if (profile.groceries.stocks[key]) {
+        profile.groceries.stocks[key].lastBought = today();
+      } else if (STOCK_LABELS[key]) {
+        profile.groceries.stocks[key] = { lastBought: today(), intervalDays: 60 };
+      }
+    }
+  }
+  writeJSON('profile.json', profile);
+  res.json({ success: true, ...getNextShoppingInfo() });
 });
 
 initData();

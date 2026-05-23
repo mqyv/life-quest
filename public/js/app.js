@@ -177,7 +177,84 @@ async function loadDashboard() {
 
   await loadActivityCalendar(stats);
   await loadRecentBadges();
+  await loadGroceriesCard();
   await loadHadith();
+}
+
+async function loadGroceriesCard() {
+  try {
+    const res = await fetch('/api/groceries');
+    const data = await res.json();
+    const c = document.getElementById('grocery-content');
+    if (!c) return;
+
+    const dateStr = formatDateLong(data.nextShoppingDate);
+    const countdownLabel = data.isToday
+      ? "C'est aujourd'hui"
+      : (data.daysUntil === 1 ? 'Demain' : `Dans ${data.daysUntil} jours`);
+
+    let html = `
+      <div class="grocery-next">
+        <div class="grocery-day">${dateStr}</div>
+        <div class="grocery-countdown${data.isToday ? ' today' : ''}">${countdownLabel}</div>
+      </div>
+      <div class="grocery-section">
+        <div class="grocery-section-title">À racheter chaque semaine</div>
+        <ul class="grocery-list">
+          ${data.weeklyItems.map(i => `<li>${esc(i)}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+
+    if (data.periodicDue.length > 0) {
+      html += `
+        <div class="grocery-section">
+          <div class="grocery-section-title">Cette semaine en plus</div>
+          <ul class="grocery-list grocery-periodic">
+            ${data.periodicDue.map(i => `
+              <li>
+                <label class="grocery-check">
+                  <input type="checkbox" data-stock="${esc(i.key)}" checked>
+                  <span class="grocery-check-text">
+                    <span class="grocery-check-name">${esc(i.name)}</span>
+                    <span class="grocery-check-meta">${esc(i.price)} · ${esc(i.store)}</span>
+                  </span>
+                </label>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    html += `
+      <button class="btn btn-primary btn-large" onclick="markGroceriesDone()" style="margin-top: 14px;">
+        J'ai fait les courses
+      </button>
+    `;
+
+    c.innerHTML = html;
+  } catch (e) {
+    console.error('grocery load error', e);
+  }
+}
+
+async function markGroceriesDone() {
+  const checkboxes = document.querySelectorAll('#grocery-content input[type="checkbox"]');
+  const restocked = Array.from(checkboxes).filter(c => c.checked).map(c => c.dataset.stock);
+  await fetch('/api/groceries/done', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ stocksRestocked: restocked })
+  });
+  showToast('success', 'check', 'Courses validées', 'Prochain rappel : dimanche prochain');
+  await loadGroceriesCard();
+}
+
+function formatDateLong(str) {
+  return new Date(str + 'T00:00:00').toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
 }
 
 async function loadHadith() {
