@@ -95,6 +95,18 @@ function initData() {
   if (!readJSON('nutrition.json')) writeJSON('nutrition.json', []);
   if (!readJSON('supplement_intakes.json')) writeJSON('supplement_intakes.json', []);
   if (!readJSON('bodyweight.json')) writeJSON('bodyweight.json', []);
+
+  // Migration: cardio reduit à Tapis + Escalier (idempotent)
+  const exos = readJSON('exercises.json');
+  if (exos && !exos.some(e => e.name === 'Escalier' && !e.is_custom)) {
+    const filtered = exos.filter(e => !(e.muscle_group === 'cardio' && !e.is_custom));
+    filtered.push(
+      { id: uuidv4(), name: 'Tapis', muscle_group: 'cardio', target_sets: 1, target_reps: '20-30 min', is_custom: false },
+      { id: uuidv4(), name: 'Escalier', muscle_group: 'cardio', target_sets: 1, target_reps: '15-20 min', is_custom: false }
+    );
+    writeJSON('exercises.json', filtered);
+    console.log('Migration: cardio remplacé par Tapis + Escalier');
+  }
 }
 
 function seedExercises() {
@@ -123,9 +135,8 @@ function seedExercises() {
     { name: "Gainage", muscle_group: "core", target_sets: 3, target_reps: "60s" },
     { name: "Crunches", muscle_group: "core", target_sets: 3, target_reps: "15" },
     // Cardio
-    { name: "Course / tapis", muscle_group: "cardio", target_sets: 1, target_reps: "20-30min" },
-    { name: "Vélo", muscle_group: "cardio", target_sets: 1, target_reps: "20-30min" },
-    { name: "Rameur", muscle_group: "cardio", target_sets: 1, target_reps: "20-30min" }
+    { name: "Tapis", muscle_group: "cardio", target_sets: 1, target_reps: "20-30 min" },
+    { name: "Escalier", muscle_group: "cardio", target_sets: 1, target_reps: "15-20 min" }
   ];
   return exos.map(e => ({ id: uuidv4(), ...e, is_custom: false }));
 }
