@@ -93,6 +93,7 @@
     <ul class="nav-links">
       <li><a href="#" class="nav-link active" data-page="dashboard"><svg class="icon"><use href="#i-home"/></svg> Accueil</a></li>
       <li><a href="#" class="nav-link" data-page="habits"><svg class="icon"><use href="#i-sparkle"/></svg> Rituels</a></li>
+      <li><a href="#" class="nav-link" data-page="journal"><svg class="icon"><use href="#i-pen"/></svg> Journal</a></li>
       <li><a href="#" class="nav-link" data-page="fitness"><svg class="icon"><use href="#i-dumbbell"/></svg> Fitness</a></li>
       <li><a href="#" class="nav-link" data-page="goals"><svg class="icon"><use href="#i-target"/></svg> Objectifs</a></li>
       <li><a href="#" class="nav-link" data-page="stats"><svg class="icon"><use href="#i-chart"/></svg> Statistiques</a></li>
@@ -219,6 +220,67 @@
       </p>
 
       <div class="habits-grid" id="habits-grid"></div>
+    </section>
+
+    <!-- JOURNAL -->
+    <section class="page" id="page-journal">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Journal</div>
+          <h1 class="page-title">Écrire pour <em>se voir</em></h1>
+          <p class="page-subtitle" id="journal-date-label"></p>
+        </div>
+        <div class="xp-reward-badge">+30 XP minimum</div>
+      </div>
+
+      <div class="journal-layout">
+        <div class="journal-main">
+          <div class="card">
+            <div class="mood-section">
+              <h3>Ton humeur ce soir</h3>
+              <div class="mood-selector" id="mood-selector">
+                <button class="mood-btn" data-mood="1">1</button>
+                <button class="mood-btn" data-mood="2">2</button>
+                <button class="mood-btn" data-mood="3">3</button>
+                <button class="mood-btn" data-mood="4">4</button>
+                <button class="mood-btn" data-mood="5">5</button>
+                <button class="mood-btn" data-mood="6">6</button>
+                <button class="mood-btn" data-mood="7">7</button>
+                <button class="mood-btn" data-mood="8">8</button>
+                <button class="mood-btn" data-mood="9">9</button>
+                <button class="mood-btn" data-mood="10">10</button>
+              </div>
+              <div class="mood-scale-labels">
+                <span>Sombre</span>
+                <span>Calme</span>
+                <span>Lumineux</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Ta journée</h3>
+            <textarea class="journal-textarea" id="journal-content" placeholder="Raconte. Ce qui t'a porté, ce qui t'a coûté, ce que tu as appris sur toi..."></textarea>
+          </div>
+
+          <button class="btn btn-primary btn-large" id="save-journal-btn" onclick="saveJournal()">
+            Sauvegarder
+          </button>
+        </div>
+
+        <div class="journal-sidebar">
+          <div class="card">
+            <h3>Question du jour</h3>
+            <p class="daily-prompt" id="daily-prompt"></p>
+          </div>
+          <div class="card">
+            <h3>Entrées récentes</h3>
+            <div id="recent-entries">
+              <p class="empty-state">Aucune entrée pour l'instant.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- FITNESS -->

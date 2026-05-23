@@ -190,12 +190,19 @@ function applyDynamicHabit(h) {
 }
 
 // Mark user as active today, update streak if first activity
-function markActivity(user, logs) {
+// Counts both habit logs and journal entries as activity sources.
+function markActivity(user, currentLogs) {
   const t = today();
-  const alreadyToday = (user.lastCheckin === t) || logs.some(l => l.date === t);
+  const logs = currentLogs || (readJSON('habit_logs.json') || []);
+  const journal = readJSON('journal.json') || [];
+  const alreadyToday = (user.lastCheckin === t)
+    || logs.some(l => l.date === t)
+    || journal.some(j => j.date === t);
   if (alreadyToday) return;
   const y = yesterday();
-  const wasYesterday = (user.lastCheckin === y) || logs.some(l => l.date === y);
+  const wasYesterday = (user.lastCheckin === y)
+    || logs.some(l => l.date === y)
+    || journal.some(j => j.date === y);
   user.streak = wasYesterday ? user.streak + 1 : 1;
   if (user.streak > user.longestStreak) user.longestStreak = user.streak;
   user.lastCheckin = t;
@@ -234,11 +241,56 @@ app.put('/api/config', (req, res) => {
   res.json({ hasApiKey: !!c.apiKey, model: c.model });
 });
 
-// ─── JOURNAL (legacy, kept for badges/data) ──────────────────────────────
+// ─── JOURNAL ─────────────────────────────────────────────────────────────
 app.get('/api/journal', (req, res) => res.json(readJSON('journal.json')));
 app.get('/api/journal/today', (req, res) => {
   const entries = readJSON('journal.json');
   res.json(entries.find(e => e.date === today()) || null);
+});
+
+app.post('/api/journal', (req, res) => {
+  const { content, mood } = req.body;
+  const t = today();
+  const entries = readJSON('journal.json');
+  const user = readJSON('user.json');
+
+  const existing = entries.find(e => e.date === t);
+  let xpEarned = 0;
+  let leveledUp = false;
+
+  if (existing) {
+    // Update only — no streak change, no new XP (already awarded)
+    existing.content = content;
+    existing.mood = mood;
+    existing.updatedAt = new Date().toISOString();
+  } else {
+    // New entry today
+    xpEarned = 30 + (mood ? 10 : 0);
+    // markActivity handles streak using both habits + journal sources
+    markActivity(user);
+    const streakBonus = user.streak * 5;
+    xpEarned += streakBonus;
+    leveledUp = awardXp(user, xpEarned);
+    user.totalEntries += 1;
+
+    entries.push({
+      id: uuidv4(),
+      date: t,
+      content,
+      mood,
+      xpEarned,
+      streakBonus,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  writeJSON('journal.json', entries);
+  const newBadges = checkBadges(user);
+  const lvlInfo = calcLevel(user.xp);
+  user.level = lvlInfo.level;
+  writeJSON('user.json', user);
+
+  res.json({ success: true, xpEarned, newBadges, leveledUp, streak: user.streak, ...lvlInfo });
 });
 
 // ─── GOALS ───────────────────────────────────────────────────────────────

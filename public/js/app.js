@@ -11,11 +11,29 @@ let state = {
   selectedColor: '#a78bfa',
   habitFormType: 'check',
   habitFormFreq: 'daily',
+  selectedMood: null,
   hasApiKey: false,
   model: 'claude-sonnet-4-6',
   activityChart: null,
   xpChart: null
 };
+
+const PROMPTS = [
+  "Qu'est-ce qui t'a rendu fier aujourd'hui, même quelque chose de minuscule ?",
+  "Quel obstacle as-tu traversé sans céder ?",
+  "Comment ton état d'esprit a-t-il changé entre ce matin et maintenant ?",
+  "Qu'aurais-tu fait différemment si tu recommençais cette journée ?",
+  "Cite une chose précise dont tu peux être reconnaissant.",
+  "Quel est ton état réel en ce moment — sans filtre, sans excuse ?",
+  "Qu'as-tu appris sur toi-même aujourd'hui ?",
+  "Qu'est-ce qui te donnera la force de te lever demain ?",
+  "Décris ta journée en trois mots, sans hésiter.",
+  "Qu'est-ce qui t'a vidé d'énergie ? Qu'est-ce qui t'en a donné ?",
+  "Si tu pouvais parler à toi-même il y a un an, que dirais-tu ?",
+  "Quelle est la version de toi que tu veux atteindre dans 6 mois ?",
+  "Quel est le pas le plus petit que tu peux faire maintenant ?",
+  "Qu'est-ce que tu repousses sans cesse — et pourquoi ?"
+];
 
 // ─── Icon helper ──────────────────────────────────────────────────────────
 function icon(name, cls = 'icon') {
@@ -28,10 +46,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNav();
   setupGoalModal();
   setupHabitModal();
+  setupMoodSelector();
   await loadUser();
   await loadConfig();
   await loadDashboard();
   setDateDisplays();
+  setDailyPrompt();
   document.getElementById('m-date').value = todayStr();
 });
 
@@ -71,6 +91,7 @@ function navigateTo(page) {
   document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
 
   if (page === 'habits') loadHabits();
+  if (page === 'journal') loadJournalPage();
   if (page === 'fitness') loadFitnessPage();
   if (page === 'goals') loadGoalsPage();
   if (page === 'stats') loadStatsPage();
@@ -87,6 +108,8 @@ function setDateDisplays() {
   const dateStr = now.toLocaleDateString('fr-FR', opts);
   const el = document.getElementById('today-date');
   if (el) el.textContent = dateStr;
+  const jl = document.getElementById('journal-date-label');
+  if (jl) jl.textContent = dateStr;
   if (state.user) {
     document.getElementById('greeting-name').textContent = state.user.name;
     const hour = now.getHours();
@@ -965,6 +988,95 @@ function showToast(type, iconName, title, desc) {
     toast.style.transition = '0.3s';
     setTimeout(() => toast.remove(), 300);
   }, 4000);
+}
+
+// ─── JOURNAL ──────────────────────────────────────────────────────────────
+function setDailyPrompt() {
+  const day = new Date().getDate();
+  const el = document.getElementById('daily-prompt');
+  if (el) el.textContent = PROMPTS[day % PROMPTS.length];
+}
+
+function setupMoodSelector() {
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => selectMood(parseInt(btn.dataset.mood)));
+  });
+}
+
+function selectMood(mood) {
+  state.selectedMood = mood;
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.classList.toggle('selected', parseInt(btn.dataset.mood) === mood);
+  });
+}
+
+async function loadJournalPage() {
+  await loadUser();
+
+  // Today's entry (if any)
+  const todayRes = await fetch('/api/journal/today');
+  const today = await todayRes.json();
+  const textarea = document.getElementById('journal-content');
+  if (today) {
+    textarea.value = today.content || '';
+    if (today.mood) selectMood(today.mood);
+    else {
+      state.selectedMood = null;
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    }
+  } else {
+    textarea.value = '';
+    state.selectedMood = null;
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  }
+
+  // Recent entries
+  const allRes = await fetch('/api/journal');
+  const all = await allRes.json();
+  const recent = all.slice(-5).reverse();
+  const recContainer = document.getElementById('recent-entries');
+  if (!recent.length) {
+    recContainer.innerHTML = '<p class="empty-state">Aucune entrée pour l\'instant.</p>';
+  } else {
+    recContainer.innerHTML = recent.map(e => `
+      <div class="recent-entry">
+        <div class="recent-entry-date">${formatDate(e.date)} ${e.mood ? `<span class="recent-entry-mood">${e.mood}/10</span>` : ''}</div>
+        <div class="recent-entry-preview">${esc((e.content || '').substring(0, 100))}${(e.content || '').length > 100 ? '…' : ''}</div>
+      </div>
+    `).join('');
+  }
+}
+
+async function saveJournal() {
+  const content = document.getElementById('journal-content').value.trim();
+  if (!content) {
+    showToast('warning', 'pen', 'Entrée vide', 'Écris au moins quelques mots.');
+    return;
+  }
+
+  const btn = document.getElementById('save-journal-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sauvegarde…';
+
+  try {
+    const res = await fetch('/api/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, mood: state.selectedMood, goalsCompleted: [] })
+    });
+    const data = await res.json();
+
+    await loadUser();
+    showToast('xp', 'sparkle', `+${data.xpEarned} XP`, `Streak : ${data.streak} jour${data.streak !== 1 ? 's' : ''}`);
+    handleLevelUpAndBadges(data);
+    showToast('success', 'check', 'Journée sauvegardée', 'Bien.');
+    await loadJournalPage();
+  } catch (e) {
+    showToast('warning', 'close', 'Erreur', 'Impossible de sauvegarder.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Sauvegarder';
 }
 
 // ─── FITNESS ──────────────────────────────────────────────────────────────
