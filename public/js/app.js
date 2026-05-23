@@ -831,18 +831,12 @@ async function deleteMeasurement(id) {
 
 // ─── Settings ─────────────────────────────────────────────────────────────
 async function openSettingsModal() {
-  await loadConfig();
+  await loadUser();
   document.getElementById('settings-modal').style.display = 'flex';
-  document.getElementById('settings-name').value = state.user?.name || '';
-  document.getElementById('settings-apikey').value = '';
-  document.getElementById('settings-model').value = state.model || 'claude-sonnet-4-6';
-  const status = document.getElementById('apikey-status');
-  if (state.hasApiKey) {
-    status.textContent = '✓ Clé configurée';
-    status.className = 'form-help ok';
-  } else {
-    status.textContent = '✗ Aucune clé configurée';
-    status.className = 'form-help missing';
+  const input = document.getElementById('settings-name');
+  if (input) {
+    input.value = state.user?.name || '';
+    setTimeout(() => input.focus(), 50);
   }
 }
 
@@ -851,32 +845,21 @@ function closeSettingsModal() {
 }
 
 async function saveSettings() {
-  const apiKey = document.getElementById('settings-apikey').value.trim();
-  const model = document.getElementById('settings-model').value;
-  const name = document.getElementById('settings-name').value.trim();
-  const payload = { model };
-  if (apiKey) payload.apiKey = apiKey;
-  if (name) payload.name = name;
+  const nameInput = document.getElementById('settings-name');
+  const name = (nameInput?.value || '').trim();
+  if (!name) {
+    showToast('warning', 'close', 'Prénom requis', '');
+    return;
+  }
   await fetch('/api/config', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ name })
   });
   await loadUser();
-  await loadConfig();
   closeSettingsModal();
-  showToast('success', 'check', 'Paramètres sauvegardés', '');
-  // Refresh coach view if active
-  if (document.getElementById('page-coach').classList.contains('active')) {
-    document.getElementById('coach-no-key').style.display = state.hasApiKey ? 'none' : 'block';
-  }
-}
-
-async function clearChatHistory() {
-  if (!confirm('Effacer toute l\'historique du chat coach ? Cette action est irréversible.')) return;
-  await fetch('/api/coach/history', { method: 'DELETE' });
-  await loadChatHistory();
-  showToast('success', 'check', 'Historique effacé', '');
+  showToast('success', 'check', 'Prénom sauvegardé', name);
+  setDateDisplays();
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────
@@ -1098,6 +1081,138 @@ async function loadFitnessPage() {
   await loadRecentSessions();
   await loadBodyweightChart();
   populateProgressionSelect();
+  renderMealPlan();
+  renderShoppingList();
+}
+
+const MEAL_PLAN = [
+  { name: 'Matin', time: '~8h', kcal: 500, protein: 32, ingredients: "80 g flocons d'avoine + 1 banane + 200 ml lait demi-écrémé + 25 g whey" },
+  { name: 'Collation matin', time: '~11h', kcal: 150, protein: 18, ingredients: "1 skyr 0% nature (150 g) + 1 pomme", optional: true },
+  { name: 'Déjeuner', time: '~13h', kcal: 700, protein: 45, ingredients: "100 g riz cru (≈300 g cuit) + 150 g poulet (blanc ou cuisse) + 200 g légumes surgelés + 1 c.à.c huile d'olive" },
+  { name: 'Post-training', time: '~17h', kcal: 280, protein: 28, ingredients: "25 g whey + 250 ml eau + 1 banane (ou 40 g flocons d'avoine)" },
+  { name: 'Dîner', time: '~20h', kcal: 700, protein: 35, ingredients: "3 œufs entiers + 1 blanc + 80 g pâtes complètes sec (ou 250 g pommes de terre) + 200 g légumes + 30 g emmental râpé" }
+];
+
+const SHOPPING_LIST = {
+  total: '~28 € / semaine (+ ~5 €/sem amorti pour whey + créatine)',
+  stores: [
+    {
+      name: 'Lidl Marly (~12 €)',
+      items: [
+        ["Flocons d'avoine 1 kg", '1,40 €'],
+        ['Œufs frais (2 × boîte de 12)', '6,40 €'],
+        ['Skyr 0% nature × 4 pots', '3,00 €'],
+        ['Bananes 1,5 kg', '1,90 €'],
+        ['Pommes 1 kg', '1,80 €'],
+        ['Légumes surgelés 1 kg (mélange ou brocolis)', '1,50 €'],
+        ['Lait demi-écrémé 1 L', '1,00 €']
+      ]
+    },
+    {
+      name: 'Carrefour Aulnoy (~13 €)',
+      items: [
+        ['Blanc de poulet 800 g - 1 kg (ou cuisses ~4 €/kg)', '7-9 €'],
+        ["Thon en boîte à l'eau MDD × 4", '3,50 €'],
+        ['Riz blanc 1 kg', '1,20 €'],
+        ['Pâtes complètes 500 g × 2', '1,80 €'],
+        ['Emmental râpé MDD 200 g', '1,80 €'],
+        ["Huile d'olive 500 ml (tous les 2 mois)", '—']
+      ]
+    },
+    {
+      name: 'Compléments (par mois ou 2)',
+      items: [
+        ['Whey 2 kg MDD (Carrefour, Auchan, Décathlon)', '35-45 €'],
+        ['Créatine monohydrate 300 g', '12-15 €']
+      ]
+    }
+  ]
+};
+
+function renderMealPlan() {
+  const c = document.getElementById('meal-plan-list');
+  if (!c) return;
+  c.innerHTML = MEAL_PLAN.map((m, i) => `
+    <div class="meal-item">
+      <div class="meal-header">
+        <div class="meal-info">
+          <div class="meal-name">${esc(m.name)} <span class="meal-time">${esc(m.time)}</span>${m.optional ? '<span class="meal-opt">optionnel</span>' : ''}</div>
+          <div class="meal-ingredients">${esc(m.ingredients)}</div>
+        </div>
+        <div class="meal-macros">
+          <div class="meal-kcal">+${m.kcal} kcal</div>
+          <div class="meal-prot">+${m.protein} g prot</div>
+        </div>
+      </div>
+      <button class="meal-add-btn" onclick="addMealToNutrition(${i})">+ Ajouter au jour</button>
+    </div>
+  `).join('');
+}
+
+function renderShoppingList() {
+  const c = document.getElementById('shopping-list');
+  if (!c) return;
+  let html = `<p class="form-help" style="margin-bottom: 14px;">${esc(SHOPPING_LIST.total)}</p>`;
+  for (const store of SHOPPING_LIST.stores) {
+    html += `
+      <div class="shop-store">
+        <div class="shop-store-header">
+          <span class="shop-store-name">${esc(store.name)}</span>
+        </div>
+        <div class="shop-items">
+          ${store.items.map(([item, price]) => `
+            <div class="shop-item">
+              <span>${esc(item)}</span>
+              <span class="shop-price">${esc(price)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  c.innerHTML = html;
+}
+
+async function addMealToNutrition(idx) {
+  const meal = MEAL_PLAN[idx];
+  const calEl = document.getElementById('nut-calories');
+  const proEl = document.getElementById('nut-protein');
+  const carbsEl = document.getElementById('nut-carbs');
+  const fatEl = document.getElementById('nut-fat');
+  const notesEl = document.getElementById('nut-notes');
+
+  const newCal = (parseFloat(calEl.value) || 0) + meal.kcal;
+  const newPro = (parseFloat(proEl.value) || 0) + meal.protein;
+  calEl.value = newCal;
+  proEl.value = newPro;
+
+  await fetch('/api/nutrition/today', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      calories_kcal: newCal,
+      protein_g: newPro,
+      carbs_g: parseFloat(carbsEl.value) || '',
+      fat_g: parseFloat(fatEl.value) || '',
+      notes: notesEl.value
+    })
+  });
+  showToast('xp', 'check', `${meal.name} ajouté`, `+${meal.kcal} kcal · +${meal.protein} g prot`);
+  await loadFitnessDashboard();
+}
+
+async function resetNutrition() {
+  if (!confirm('Effacer les macros du jour ?')) return;
+  ['nut-calories','nut-protein','nut-carbs','nut-fat','nut-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  await fetch('/api/nutrition/today', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ calories_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, notes: '' })
+  });
+  showToast('success', 'check', 'Macros effacées', '');
+  await loadFitnessDashboard();
 }
 
 async function loadExercisesList() {

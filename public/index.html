@@ -361,9 +361,28 @@
                 <input type="text" id="nut-notes" class="form-input" placeholder="Repas, ressenti...">
               </div>
             </div>
-            <button class="btn btn-primary btn-large" onclick="saveNutrition()" style="margin-top: 14px;">
-              Enregistrer la nutrition
-            </button>
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+              <button class="btn btn-ghost" onclick="resetNutrition()" style="flex: 1;">Effacer</button>
+              <button class="btn btn-primary" onclick="saveNutrition()" style="flex: 2;">Enregistrer</button>
+            </div>
+          </div>
+
+          <!-- Plan de repas étudiant -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Plan de repas (étudiant)</h2>
+              <svg class="icon"><use href="#i-utensils"/></svg>
+            </div>
+            <p class="form-help">~2330 kcal · 158 g protéines · ~6,50 €/jour. Clic sur "Ajouter" pour cumuler dans tes macros.</p>
+            <div id="meal-plan-list"></div>
+          </div>
+
+          <!-- Liste de courses -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Liste de courses (semaine)</h2>
+            </div>
+            <div id="shopping-list"></div>
           </div>
 
           <!-- Supplements quick log -->
