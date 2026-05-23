@@ -1189,7 +1189,7 @@ const SHOPPING_LIST = {
       name: 'Carrefour Aulnoy (~13 €)',
       items: [
         ['Blanc de poulet 800 g - 1 kg (ou cuisses ~4 €/kg)', '7-9 €'],
-        ["Thon en boîte à l'eau MDD × 4", '3,50 €'],
+        ['Jambon blanc 6-8 tranches', '~2,80 €'],
         ['Riz blanc 1 kg', '1,20 €'],
         ['Pâtes complètes 500 g × 2', '1,80 €'],
         ['Emmental râpé MDD 200 g', '1,80 €'],

@@ -154,7 +154,7 @@ const WEEKLY_ITEMS = [
   'Légumes surgelés 1 kg',
   'Lait demi-écrémé 1 L',
   'Poulet 800 g - 1 kg (ou cuisses)',
-  'Thon en boîte à l\'eau × 4'
+  'Jambon blanc 6-8 tranches'
 ];
 
 function seedExercises() {
