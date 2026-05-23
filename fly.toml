@@ -1,0 +1,29 @@
+# Configuration Fly.io
+# Adapter l'app name après `fly launch` (Fly génère un nom unique)
+
+app = "life-quest"
+primary_region = "cdg"   # Paris
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DATA_DIR = "/data"
+  PORT = "3000"
+
+# Volume persistant pour les fichiers JSON (= ta "BDD")
+[[mounts]]
+  source = "lifequest_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256

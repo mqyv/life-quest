@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Quest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 12L12 4l9 8M5 10v10h4v-6h6v6h4V10"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h7a3 3 0 013 3v13a2 2 0 00-2-2H4V4zM20 4h-7a3 3 0 00-3 3v13a2 2 0 012-2h8V4z"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18M6 16V8m6 8V4m6 12v-6"/></symbol>
+      <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v6a4 4 0 01-8 0V4zM6 6H4v2a3 3 0 003 3M18 6h2v2a3 3 0 01-3 3M12 14v4M9 20h6"/></symbol>
+      <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6 8v8M2 10v4M10 6v12M14 6v12M18 8v8M22 10v4M10 12h4"/></symbol>
+      <symbol id="i-body" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v6m-4 2l4-4 4 4m-3 0v6m-2-6v6"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-9"/></symbol>
+      <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c0 4-4 5-4 9a4 4 0 008 0c0-2-1-3-1-5 2 1 3 3 3 5a6 6 0 11-12 0c0-4 6-6 6-9z"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14l-5-4.5 6.5-.5L12 3z"/></symbol>
+      <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14a8 8 0 11-9-10 6 6 0 009 10z"/></symbol>
+      <symbol id="i-footsteps" viewBox="0 0 24 24"><ellipse cx="8" cy="6" rx="2.5" ry="3"/><ellipse cx="16" cy="14" rx="2.5" ry="3"/><path d="M6 11v3M14 19v2"/></symbol>
+      <symbol id="i-broom" viewBox="0 0 24 24"><path d="M14 4l6 6M4 20l8-8M4 20l-1 1 7-2 4-4M15 9l-4 4"/></symbol>
+      <symbol id="i-water" viewBox="0 0 24 24"><path d="M12 3l-6 9a6 6 0 1012 0l-6-9z"/></symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24"><path d="M3 21l3.5-1 10.5-10.5-3.5-3.5L3 17.5V21zM14 6.5l3.5 3.5M17 4l3 3"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V4h6v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></symbol>
+      <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="M3 12l18-9-4 18-5-7-9-2z"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12c0-.5-.1-1-.2-1.5l2-1.5-2-3.5-2.4 1c-.7-.6-1.5-1-2.4-1.4L13.5 3h-3l-.5 2.1c-.9.3-1.7.8-2.4 1.4l-2.4-1-2 3.5 2 1.5c-.1.5-.2 1-.2 1.5s.1 1 .2 1.5l-2 1.5 2 3.5 2.4-1c.7.6 1.5 1 2.4 1.4l.5 2.1h3l.5-2.1c.9-.3 1.7-.8 2.4-1.4l2.4 1 2-3.5-2-1.5c.1-.5.2-1 .2-1.5z"/></symbol>
+      <symbol id="i-pill" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="M8.5 8.5l7 7"/></symbol>
+      <symbol id="i-b-moons" viewBox="0 0 24 24"><path d="M6 12a2 2 0 100-3 1.6 1.6 0 010 3z"/><path d="M12 12a2 2 0 100-3 1.6 1.6 0 010 3z"/><path d="M18 12a2 2 0 100-3 1.6 1.6 0 010 3z"/><path d="M4 19h16"/></symbol>
+      <symbol id="i-b-week" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/></symbol>
+      <symbol id="i-b-mountain" viewBox="0 0 24 24"><path d="M3 20l5-10 4 6 3-4 6 8H3z"/><circle cx="16" cy="6" r="1.5"/></symbol>
+      <symbol id="i-b-arrow" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="M21 3l-7 7M15 3h6v6"/></symbol>
+      <symbol id="i-b-cup" viewBox="0 0 24 24"><path d="M7 3h10v6a5 5 0 01-10 0V3zM7 5H4v2a3 3 0 003 3M17 5h3v2a3 3 0 01-3 3M12 14v4M8 21h8"/></symbol>
+      <symbol id="i-b-sunrise" viewBox="0 0 24 24"><path d="M4 18a8 8 0 0116 0M3 21h18M12 3v3M5 7l2 2M19 7l-2 2"/></symbol>
+      <symbol id="i-b-diamond" viewBox="0 0 24 24"><path d="M6 3h12l3 6-9 13L3 9z"/><path d="M3 9h18M9 3l3 6 3-6M9 9l3 13M15 9l-3 13"/></symbol>
+      <symbol id="i-b-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+      <symbol id="i-b-scroll" viewBox="0 0 24 24"><path d="M5 4h12a2 2 0 012 2v14l-3-2-3 2-3-2-3 2L5 18V4z"/><path d="M9 9h6M9 13h5"/></symbol>
+      <symbol id="i-b-anvil" viewBox="0 0 24 24"><path d="M14 3l5 5-3 3-5-5 3-3zM12 7l-8 8v4h4l8-8M3 22h18"/></symbol>
+      <symbol id="i-quote" viewBox="0 0 24 24"><path d="M7 8h4v8H5v-4a4 4 0 014-4M17 8h4v8h-6v-4a4 4 0 014-4"/></symbol>
+      <symbol id="i-mosque" viewBox="0 0 24 24"><path d="M12 3a5 5 0 015 5M12 3a5 5 0 00-5 5M12 8v4M4 21V12a4 4 0 014-4h8a4 4 0 014 4v9M9 21v-5h6v5M2 21h20"/></symbol>
+      <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M5 3v18M9 3v8a2 2 0 01-4 0V3M19 3v18M15 11h6M19 3v8a4 4 0 01-4 4"/></symbol>
+      <symbol id="i-scale" viewBox="0 0 24 24"><path d="M3 8h18M6 8l-3 6h6L6 8M18 8l-3 6h6L18 8M12 3v18M8 21h8"/></symbol>
+      <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="stars" id="stars"></div>
+  <div class="noise"></div>
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"></div>
+      <div class="logo-text">Life Quest</div>
+    </div>
+
+    <div class="player-card">
+      <div class="player-avatar" id="nav-avatar">?</div>
+      <div class="player-info">
+        <div class="player-name" id="nav-name">Joueur</div>
+        <div class="player-level" id="nav-level">Niveau 1</div>
+      </div>
+    </div>
+
+    <div class="xp-section">
+      <div class="xp-label">
+        <span>Expérience</span>
+        <span id="nav-xp-text">0 / 100</span>
+      </div>
+      <div class="xp-bar-bg">
+        <div class="xp-bar-fill" id="nav-xp-bar"></div>
+      </div>
+    </div>
+
+    <div class="streak-badge">
+      <svg class="icon"><use href="#i-flame"/></svg>
+      <span><span class="streak-number" id="nav-streak-count">0</span> jours consécutifs</span>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="#" class="nav-link active" data-page="dashboard"><svg class="icon"><use href="#i-home"/></svg> Accueil</a></li>
+      <li><a href="#" class="nav-link" data-page="habits"><svg class="icon"><use href="#i-sparkle"/></svg> Rituels</a></li>
+      <li><a href="#" class="nav-link" data-page="fitness"><svg class="icon"><use href="#i-dumbbell"/></svg> Fitness</a></li>
+      <li><a href="#" class="nav-link" data-page="goals"><svg class="icon"><use href="#i-target"/></svg> Objectifs</a></li>
+      <li><a href="#" class="nav-link" data-page="stats"><svg class="icon"><use href="#i-chart"/></svg> Statistiques</a></li>
+      <li><a href="#" class="nav-link" data-page="achievements"><svg class="icon"><use href="#i-trophy"/></svg> Succès</a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-settings-btn" onclick="openSettingsModal()">
+        <svg class="icon"><use href="#i-settings"/></svg> Paramètres
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <!-- DASHBOARD -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Accueil</div>
+          <h1 class="page-title">Bonsoir, <em id="greeting-name">Joueur</em></h1>
+          <p class="page-subtitle" id="greeting-sub">Une nouvelle journée pour devenir un peu meilleur.</p>
+        </div>
+        <div class="date-display" id="today-date"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <svg class="icon icon-lg"><use href="#i-sparkle"/></svg>
+          <div class="stat-value" id="dash-xp">0</div>
+          <div class="stat-label">Expérience</div>
+        </div>
+        <div class="stat-card">
+          <svg class="icon icon-lg"><use href="#i-flame"/></svg>
+          <div class="stat-value" id="dash-streak">0</div>
+          <div class="stat-label">Jours consécutifs</div>
+        </div>
+        <div class="stat-card">
+          <svg class="icon icon-lg"><use href="#i-target"/></svg>
+          <div class="stat-value" id="dash-goals">0</div>
+          <div class="stat-label">Objectifs réussis</div>
+        </div>
+        <div class="stat-card">
+          <svg class="icon icon-lg"><use href="#i-dumbbell"/></svg>
+          <div class="stat-value" id="dash-habits">0</div>
+          <div class="stat-label">Rituels accomplis</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <h2>Activité des 30 derniers jours</h2>
+            <svg class="icon"><use href="#i-clock"/></svg>
+          </div>
+          <div class="activity-calendar" id="activity-calendar"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h2>Derniers succès</h2>
+            <svg class="icon"><use href="#i-star"/></svg>
+          </div>
+          <div class="recent-badges" id="recent-badges">
+            <p class="empty-state">Aucun succès pour l'instant.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card hadith-card" id="hadith-card">
+        <div class="hadith-header">
+          <svg class="icon"><use href="#i-quote"/></svg>
+          <span>Hadith du jour</span>
+        </div>
+        <p class="hadith-text" id="hadith-text">…</p>
+        <div class="hadith-source" id="hadith-source"></div>
+      </div>
+
+      <div class="card" id="today-cta" style="display:none;">
+        <div class="cta-content">
+          <div class="cta-mark">
+            <svg class="icon"><use href="#i-sparkle"/></svg>
+          </div>
+          <div>
+            <h3>La journée n'est pas finie</h3>
+            <p>Tu n'as encore validé aucun rituel aujourd'hui.</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('habits')">Aller aux rituels</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- HABITS -->
+    <section class="page" id="page-habits">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Rituels</div>
+          <h1 class="page-title">Tes <em>rituels</em></h1>
+          <p class="page-subtitle">Les petits gestes qui, répétés, construisent l'homme que tu veux devenir.</p>
+        </div>
+        <button class="btn btn-ghost" onclick="openHabitModal()">
+          <svg class="icon"><use href="#i-plus"/></svg> Nouveau rituel
+        </button>
+      </div>
+
+      <p class="habits-intro">
+        Chaque rituel coché aujourd'hui te rapporte de l'XP et fait avancer ton compteur de discipline. Reviens demain — la régularité bat la perfection.
+      </p>
+
+      <div class="habits-grid" id="habits-grid"></div>
+    </section>
+
+    <!-- FITNESS -->
+    <section class="page" id="page-fitness">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Fitness</div>
+          <h1 class="page-title">Salle & <em>nutrition</em></h1>
+          <p class="page-subtitle">Charges qui montent, protéines qui rentrent, créatine chaque jour.</p>
+        </div>
+      </div>
+
+      <div class="fitness-snapshot">
+        <div class="snap-card">
+          <div class="snap-label">Protéines</div>
+          <div class="snap-value" id="snap-protein">0<span class="snap-unit">g</span></div>
+          <div class="snap-target" id="snap-protein-target">— / —</div>
+          <div class="snap-bar"><div class="snap-bar-fill" id="snap-protein-bar"></div></div>
+        </div>
+        <div class="snap-card">
+          <div class="snap-label">Créatine</div>
+          <div class="snap-value" id="snap-creatine">—</div>
+          <div class="snap-target" id="snap-creatine-target">5g par jour</div>
+        </div>
+        <div class="snap-card">
+          <div class="snap-label">Whey</div>
+          <div class="snap-value" id="snap-whey">0<span class="snap-unit">×</span></div>
+          <div class="snap-target" id="snap-whey-detail">0 g protéines</div>
+        </div>
+        <div class="snap-card">
+          <div class="snap-label">Calories</div>
+          <div class="snap-value" id="snap-calories">0<span class="snap-unit">kcal</span></div>
+          <div class="snap-target" id="snap-cal-target">cible — kcal</div>
+        </div>
+        <div class="snap-card">
+          <div class="snap-label">Séances semaine</div>
+          <div class="snap-value" id="snap-sessions">0<span class="snap-unit">/4</span></div>
+          <div class="snap-target">Recomposition</div>
+        </div>
+      </div>
+
+      <div class="fitness-grid">
+        <div class="fitness-main">
+          <!-- Active workout / Start workout -->
+          <div class="card" id="workout-card">
+            <div class="card-header">
+              <h2 id="workout-card-title">Démarrer une séance</h2>
+              <svg class="icon"><use href="#i-dumbbell"/></svg>
+            </div>
+            <div id="workout-content"></div>
+          </div>
+
+          <!-- Nutrition -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Nutrition du jour</h2>
+              <svg class="icon"><use href="#i-utensils"/></svg>
+            </div>
+            <div class="nutrition-form">
+              <div class="form-group">
+                <label>Calories (kcal)</label>
+                <input type="number" id="nut-calories" class="form-input" placeholder="2500">
+              </div>
+              <div class="form-group">
+                <label>Protéines (g) <span class="form-priority">prioritaire</span></label>
+                <input type="number" id="nut-protein" class="form-input" placeholder="150">
+              </div>
+              <div class="form-group">
+                <label>Glucides (g)</label>
+                <input type="number" id="nut-carbs" class="form-input" placeholder="—">
+              </div>
+              <div class="form-group">
+                <label>Lipides (g)</label>
+                <input type="number" id="nut-fat" class="form-input" placeholder="—">
+              </div>
+              <div class="form-group full">
+                <label>Notes</label>
+                <input type="text" id="nut-notes" class="form-input" placeholder="Repas, ressenti...">
+              </div>
+            </div>
+            <button class="btn btn-primary btn-large" onclick="saveNutrition()" style="margin-top: 14px;">
+              Enregistrer la nutrition
+            </button>
+          </div>
+
+          <!-- Supplements quick log -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Compléments</h2>
+              <svg class="icon"><use href="#i-pill"/></svg>
+            </div>
+            <div class="supp-quick-row">
+              <button class="supp-quick-btn whey" onclick="logIntake('whey')">
+                <span class="supp-quick-label">+ Whey</span>
+                <span class="supp-quick-sub" id="whey-quick-sub">30g</span>
+              </button>
+              <button class="supp-quick-btn creatine" onclick="logIntake('creatine')">
+                <span class="supp-quick-label">+ Créatine</span>
+                <span class="supp-quick-sub" id="creatine-quick-sub">5g</span>
+              </button>
+            </div>
+            <div id="intakes-today" style="margin-top: 16px;"></div>
+          </div>
+
+          <!-- Bodyweight -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Poids de corps</h2>
+              <svg class="icon"><use href="#i-scale"/></svg>
+            </div>
+            <div class="bw-row">
+              <input type="number" step="0.1" id="bw-input" class="form-input" placeholder="ex: 75.4">
+              <span class="bw-unit">kg</span>
+              <button class="btn btn-primary" onclick="logBodyweight()">Enregistrer</button>
+            </div>
+            <p class="form-help" id="bw-current"></p>
+            <canvas id="bw-chart" style="margin-top: 14px; max-height: 200px;"></canvas>
+          </div>
+        </div>
+
+        <div class="fitness-sidebar">
+          <!-- Profile -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Profil</h2>
+            </div>
+            <div class="profile-form">
+              <div class="form-group">
+                <label>Taille (cm)</label>
+                <input type="number" id="prof-height" class="form-input" placeholder="186">
+              </div>
+              <div class="form-group">
+                <label>Cible calories (kcal)</label>
+                <input type="number" id="prof-calories" class="form-input" placeholder="2500">
+              </div>
+              <div class="form-group">
+                <label>Cible séances / semaine</label>
+                <input type="number" id="prof-sessions" class="form-input" placeholder="4">
+              </div>
+              <div class="form-group">
+                <label>Créatine quotidienne (g)</label>
+                <input type="number" step="0.5" id="prof-creatine" class="form-input" placeholder="5">
+              </div>
+              <p class="form-help" id="profile-protein-target"></p>
+              <button class="btn btn-ghost" onclick="saveProfile()" style="width:100%; margin-top:8px;">
+                Sauvegarder
+              </button>
+            </div>
+          </div>
+
+          <!-- Progression chart -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Progression</h2>
+              <svg class="icon"><use href="#i-arrow-up"/></svg>
+            </div>
+            <select id="progress-exercise-select" class="form-input" onchange="loadProgressionChart()" style="margin-bottom: 14px;">
+              <option value="">— Choisir un exercice —</option>
+            </select>
+            <canvas id="progress-chart" style="max-height: 200px;"></canvas>
+            <p class="form-help" id="progress-empty" style="display:none;">Aucune donnée pour cet exercice. Fais ta première séance.</p>
+          </div>
+
+          <!-- Recent sessions -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Dernières séances</h2>
+              <svg class="icon"><use href="#i-clock"/></svg>
+            </div>
+            <div id="recent-sessions">
+              <p class="empty-state">Aucune séance enregistrée.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GOALS -->
+    <section class="page" id="page-goals">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Objectifs</div>
+          <h1 class="page-title">Tes <em>quêtes</em></h1>
+          <p class="page-subtitle">Définis-les avec précision. Vague tue le progrès.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openGoalModal()">
+          <svg class="icon"><use href="#i-plus"/></svg> Nouvelle quête
+        </button>
+      </div>
+
+      <div class="goals-tabs">
+        <button class="tab-btn active" data-tab="daily">Quotidien</button>
+        <button class="tab-btn" data-tab="weekly">Hebdomadaire</button>
+        <button class="tab-btn" data-tab="longterm">Long terme</button>
+      </div>
+
+      <div class="goals-list" id="goals-list"></div>
+    </section>
+
+    <!-- STATS -->
+    <section class="page" id="page-stats">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Statistiques</div>
+          <h1 class="page-title">Ce que <em>30 jours</em> révèlent</h1>
+          <p class="page-subtitle">Observer son histoire pour mieux écrire la suite.</p>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="card chart-card">
+          <h3>Activité sur 30 jours</h3>
+          <canvas id="activity-chart"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>XP gagné par jour</h3>
+          <canvas id="xp-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="stats-summary-grid">
+        <div class="card stat-summary">
+          <div class="summary-value" id="stat-active-days">0</div>
+          <div class="summary-label">Jours actifs</div>
+        </div>
+        <div class="card stat-summary">
+          <div class="summary-value" id="stat-habits-30">0</div>
+          <div class="summary-label">Rituels (30j)</div>
+        </div>
+        <div class="card stat-summary">
+          <div class="summary-value" id="stat-longest">0</div>
+          <div class="summary-label">Streak record</div>
+        </div>
+        <div class="card stat-summary">
+          <div class="summary-value" id="stat-total-xp">0</div>
+          <div class="summary-label">XP total</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACHIEVEMENTS -->
+    <section class="page" id="page-achievements">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Succès</div>
+          <h1 class="page-title">Les <em>fragments</em> de toi</h1>
+          <p class="page-subtitle">Chaque succès débloqué est une preuve que tu changes.</p>
+        </div>
+      </div>
+      <div class="badges-grid" id="badges-grid"></div>
+    </section>
+  </main>
+
+  <!-- Goal Modal -->
+  <div class="modal-overlay" id="goal-modal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Nouvelle quête</h2>
+        <button class="modal-close" onclick="closeGoalModal()">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Titre</label>
+          <input type="text" id="goal-title" class="form-input" placeholder="Méditer 10 minutes" maxlength="60">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="goal-desc" class="form-input" placeholder="Pourquoi cet objectif est important">
+        </div>
+        <div class="form-group">
+          <label>Cadence</label>
+          <div class="type-selector">
+            <button class="type-btn active" data-type="daily">Quotidien</button>
+            <button class="type-btn" data-type="weekly">Hebdo</button>
+            <button class="type-btn" data-type="longterm">Long terme</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Couleur</label>
+          <div class="color-picker">
+            <button class="color-opt active" data-color="#a78bfa" style="background:#a78bfa"></button>
+            <button class="color-opt" data-color="#ec4899" style="background:#ec4899"></button>
+            <button class="color-opt" data-color="#67e8f9" style="background:#67e8f9"></button>
+            <button class="color-opt" data-color="#c4b5fd" style="background:#c4b5fd"></button>
+            <button class="color-opt" data-color="#f0abfc" style="background:#f0abfc"></button>
+            <button class="color-opt" data-color="#fbbf24" style="background:#fbbf24"></button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeGoalModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="createGoal()">Créer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Habit Modal -->
+  <div class="modal-overlay" id="habit-modal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Nouveau rituel</h2>
+        <button class="modal-close" onclick="closeHabitModal()">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nom du rituel</label>
+          <input type="text" id="habit-name" class="form-input" placeholder="Lecture 30 min">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="habit-desc" class="form-input" placeholder="Optionnel">
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <div class="type-selector">
+            <button class="type-btn active" data-htype="check">Coche</button>
+            <button class="type-btn" data-htype="number">Compteur</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cadence</label>
+          <div class="type-selector">
+            <button class="type-btn active" data-hfreq="daily">Quotidien</button>
+            <button class="type-btn" data-hfreq="weekly">Hebdo</button>
+          </div>
+        </div>
+        <div class="form-group" id="habit-target-group" style="display:none;">
+          <label>Objectif</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="number" id="habit-target" class="form-input" placeholder="10000" style="flex: 2;">
+            <input type="text" id="habit-unit" class="form-input" placeholder="pas" style="flex: 1;">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeHabitModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="createHabit()">Créer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Paramètres</h2>
+        <button class="modal-close" onclick="closeSettingsModal()">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Prénom</label>
+          <input type="text" id="settings-name" class="form-input" placeholder="Ton prénom">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeSettingsModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="levelup-overlay" id="levelup-overlay" style="display:none;">
+    <div class="levelup-content">
+      <div class="levelup-ring">
+        <svg class="icon"><use href="#i-star"/></svg>
+      </div>
+      <div class="levelup-eyebrow">Évolution</div>
+      <h2>Niveau Supérieur</h2>
+      <div class="levelup-level" id="levelup-num">Niveau 2</div>
+      <p>Tu deviens plus précis, plus régulier, plus toi-même. Continue.</p>
+      <button class="btn btn-primary" onclick="closeLevelUp()">Continuer</button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
