@@ -1,29 +1,30 @@
-# Configuration Fly.io
-# Adapter l'app name après `fly launch` (Fly génère un nom unique)
+# fly.toml app configuration file generated for life-quest on 2026-05-23T12:27:53Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "life-quest"
-primary_region = "cdg"   # Paris
+app = 'life-quest'
+primary_region = 'ams'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  DATA_DIR = "/data"
-  PORT = "3000"
+  DATA_DIR = '/data'
+  PORT = '3000'
 
-# Volume persistant pour les fichiers JSON (= ta "BDD")
 [[mounts]]
-  source = "lifequest_data"
-  destination = "/data"
+  source = 'lifequest_data'
+  destination = '/data'
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
 
 [[vm]]
-  cpu_kind = "shared"
+  cpu_kind = 'shared'
   cpus = 1
   memory_mb = 256
