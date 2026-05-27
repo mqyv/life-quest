@@ -1434,11 +1434,13 @@ async function renderActiveSession() {
   const blocks = await Promise.all(visibleExercises.map(async ex => {
     const last = await (await fetch(`/api/exercises/${ex.id}/last`)).json();
     const sets = setsByExercise[ex.id] || [];
+    const nextWeight = (last && last.sets[sets.length]) ? last.sets[sets.length].weight_kg : '';
+    const nextReps = (last && last.sets[sets.length]) ? last.sets[sets.length].reps : '';
     return `
       <div class="exercise-block">
         <div class="exercise-header">
           <div>
-            <div class="exercise-name">${esc(ex.name)}</div>
+            <div class="exercise-name">${esc(ex.name)} ${sets.length ? `<span class="exercise-count">${sets.length} série${sets.length>1?'s':''}</span>` : ''}</div>
             <div class="exercise-target">${ex.target_sets ? ex.target_sets + ' × ' + esc(ex.target_reps) : ''}</div>
             ${last ? `<div class="exercise-last">Dernière fois : ${last.sets.map(s => `${s.weight_kg}kg × ${s.reps}`).join(' / ')}</div>` : ''}
           </div>
@@ -1451,11 +1453,29 @@ async function renderActiveSession() {
             <button class="set-del" onclick="deleteSet('${session.id}', '${s.id}')">×</button>
           </div>
         `).join('')}
-        <div class="set-row" style="margin-top: 4px;">
-          <span class="set-num">${sets.length + 1}</span>
-          <div class="set-input-wrap"><input class="set-input" type="number" step="0.5" placeholder="${last && last.sets[sets.length] ? last.sets[sets.length].weight_kg : ''}" id="w-${ex.id}"><span class="lbl">kg</span></div>
-          <div class="set-input-wrap"><input class="set-input" type="number" placeholder="${last && last.sets[sets.length] ? last.sets[sets.length].reps : ''}" id="r-${ex.id}"><span class="lbl">reps</span></div>
-          <button class="set-add-btn" style="grid-column: 4 / 5; padding: 6px; margin-top: 0;" onclick="addSet('${session.id}', '${ex.id}')">+</button>
+        <div class="set-add-block">
+          <div class="set-add-row">
+            <span class="set-num">${sets.length + 1}</span>
+            <div class="set-input-wrap">
+              <input class="set-input" type="number" step="0.5"
+                     placeholder="${nextWeight || 'kg'}"
+                     id="w-${ex.id}"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('r-${ex.id}').focus()}"
+                     onblur="autoSaveSet('${session.id}', '${ex.id}')">
+              <span class="lbl">kg</span>
+            </div>
+            <div class="set-input-wrap">
+              <input class="set-input" type="number"
+                     placeholder="${nextReps || 'reps'}"
+                     id="r-${ex.id}"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();addSet('${session.id}', '${ex.id}', 'manual')}"
+                     onblur="autoSaveSet('${session.id}', '${ex.id}')">
+              <span class="lbl">reps</span>
+            </div>
+          </div>
+          <button class="set-add-validate" onclick="addSet('${session.id}', '${ex.id}', 'manual')">
+            + Valider la série
+          </button>
         </div>
       </div>
     `;
@@ -1474,8 +1494,9 @@ async function renderActiveSession() {
           ${startedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
+      <p class="form-help workout-hint">Chaque série est enregistrée automatiquement quand t'as mis kg + reps. Appuie sur Entrée ou clique "Valider". Tu peux remplir seulement les exos que tu fais.</p>
       ${blocks.join('')}
-      <div style="display: flex; gap: 8px; margin-top: 10px;">
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
         <button class="btn btn-ghost" onclick="cancelSession('${session.id}')" style="flex: 1;">Annuler</button>
         <button class="btn btn-primary" onclick="endSession('${session.id}')" style="flex: 2;">Terminer la séance</button>
       </div>
@@ -1483,16 +1504,41 @@ async function renderActiveSession() {
   `;
 }
 
-async function addSet(sessionId, exerciseId) {
-  const w = parseFloat(document.getElementById('w-' + exerciseId).value);
-  const r = parseInt(document.getElementById('r-' + exerciseId).value);
-  if (!w || !r) { showToast('warning', 'close', 'Champs manquants', 'Poids et reps requis'); return; }
+// Dedupe addSet calls (blur + button may both fire)
+let _lastSetKey = '';
+let _lastSetTime = 0;
+
+async function addSet(sessionId, exerciseId, source) {
+  const wEl = document.getElementById('w-' + exerciseId);
+  const rEl = document.getElementById('r-' + exerciseId);
+  if (!wEl || !rEl) return;
+  const w = parseFloat(wEl.value);
+  const r = parseInt(rEl.value);
+  if (!w || !r) {
+    if (source === 'manual') showToast('warning', 'close', 'Champs manquants', 'Poids et reps requis');
+    return;
+  }
+  const key = `${sessionId}/${exerciseId}/${w}/${r}`;
+  if (key === _lastSetKey && Date.now() - _lastSetTime < 2500) return;
+  _lastSetKey = key;
+  _lastSetTime = Date.now();
+
   await fetch(`/api/workouts/${sessionId}/sets`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ exercise_id: exerciseId, weight_kg: w, reps: r })
   });
+  showToast('xp', 'check', 'Série enregistrée', `${w} kg × ${r} reps`);
   await renderActiveSession();
+}
+
+function autoSaveSet(sessionId, exerciseId) {
+  const wEl = document.getElementById('w-' + exerciseId);
+  const rEl = document.getElementById('r-' + exerciseId);
+  if (!wEl || !rEl) return;
+  const w = parseFloat(wEl.value);
+  const r = parseInt(rEl.value);
+  if (w > 0 && r > 0) addSet(sessionId, exerciseId, 'auto');
 }
 
 async function deleteSet(sessionId, setId) {

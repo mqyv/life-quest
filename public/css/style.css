@@ -2150,6 +2150,80 @@ select.form-input option { background: var(--bg-2); color: var(--text); }
   background: rgba(139, 92, 246, 0.04);
 }
 
+.set-add-block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-soft);
+}
+.set-add-row {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.set-add-row .set-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  width: 100%;
+}
+.set-add-row .set-input:focus {
+  outline: none;
+  border-color: var(--violet-soft);
+  background: rgba(139, 92, 246, 0.06);
+}
+.set-add-validate {
+  width: 100%;
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid var(--violet-soft);
+  color: var(--violet-pale);
+  border-radius: var(--radius-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.set-add-validate:hover {
+  background: linear-gradient(135deg, var(--violet), var(--pink));
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 0 16px var(--glow-violet);
+}
+
+.workout-hint {
+  background: rgba(139, 92, 246, 0.06);
+  border-left: 2px solid var(--violet-soft);
+  padding: 10px 14px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 18px;
+  color: var(--text-2);
+}
+
+.exercise-count {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--violet-soft);
+  border: 1px solid var(--border-strong);
+  padding: 2px 8px;
+  border-radius: 99px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: rgba(139, 92, 246, 0.08);
+}
+
 .session-row {
   display: flex;
   justify-content: space-between;
