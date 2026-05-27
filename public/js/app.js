@@ -8,14 +8,15 @@ let state = {
   pendingImages: [],
   chatBusy: false,
   selectedGoalType: 'daily',
-  selectedColor: '#a78bfa',
+  selectedColor: '#ef4444',
   habitFormType: 'check',
   habitFormFreq: 'daily',
   selectedMood: null,
   hasApiKey: false,
   model: 'claude-sonnet-4-6',
   activityChart: null,
-  xpChart: null
+  xpChart: null,
+  bwEvolChart: null
 };
 
 const PROMPTS = [
@@ -42,18 +43,18 @@ function icon(name, cls = 'icon') {
 
 // ─── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  spawnStars();
   setupNav();
   setupGoalModal();
   setupHabitModal();
-  setupMoodSelector();
   await loadUser();
   await loadConfig();
   await loadDashboard();
   setDateDisplays();
-  setDailyPrompt();
-  document.getElementById('m-date').value = todayStr();
+  const md = document.getElementById('m-date'); if (md) md.value = todayStr();
 });
+
+// Stub kept for legacy calls — does nothing now
+function spawnStars() {}
 
 // ─── Starfield ────────────────────────────────────────────────────────────
 function spawnStars() {
@@ -91,7 +92,6 @@ function navigateTo(page) {
   document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
 
   if (page === 'habits') loadHabits();
-  if (page === 'journal') loadJournalPage();
   if (page === 'fitness') loadFitnessPage();
   if (page === 'goals') loadGoalsPage();
   if (page === 'stats') loadStatsPage();
@@ -177,7 +177,6 @@ async function loadDashboard() {
 
   await loadActivityCalendar(stats);
   await loadRecentBadges();
-  await loadGroceriesCard();
   await loadHadith();
 }
 
@@ -941,65 +940,214 @@ async function saveSettings() {
 
 // ─── Stats ────────────────────────────────────────────────────────────────
 async function loadStatsPage() {
-  const res = await fetch('/api/stats');
-  const stats = await res.json();
+  const [full, simple] = await Promise.all([
+    fetch('/api/stats/full').then(r => r.json()),
+    fetch('/api/stats').then(r => r.json())
+  ]);
 
-  const activeDays = stats.last30.filter(d => d.hasEntry).length;
-  const habits30 = stats.last30.reduce((s, d) => s + (d.habitsCompleted || 0), 0);
-  document.getElementById('stat-active-days').textContent = activeDays;
-  document.getElementById('stat-habits-30').textContent = habits30;
-  document.getElementById('stat-longest').textContent = stats.longestStreak;
-  document.getElementById('stat-total-xp').textContent = stats.totalXp.toLocaleString();
+  // === Aperçu ===
+  document.getElementById('stats-level').textContent = `Niveau ${full.user.level}`;
+  document.getElementById('stats-xp').textContent = `${full.user.xp.toLocaleString()} XP`;
+  document.getElementById('stats-streak').textContent = full.user.streak;
+  document.getElementById('stats-longest').textContent = full.user.longestStreak;
+  document.getElementById('stats-total-habits').textContent = full.user.totalHabitsCompleted;
+  document.getElementById('stats-total-goals').textContent = full.goals.completedTotal;
+  document.getElementById('stats-goals-30').textContent = `${full.goals.completedLast30} sur 30j`;
+  document.getElementById('stats-total-sessions').textContent = full.workouts.totalSessions;
+  document.getElementById('stats-sessions-30').textContent = `${full.workouts.sessionsLast30} sur 30j`;
 
-  const labels = stats.last30.map(d => d.date.slice(5));
-  const activityData = stats.last30.map(d => d.habitsCompleted || 0);
-  const xpData = stats.last30.map(d => d.xp);
+  // === Activity + XP charts (aperçu) ===
+  const labels = simple.last30.map(d => d.date.slice(5));
+  const activityData = simple.last30.map(d => d.habitsCompleted || 0);
+  const xpData = simple.last30.map(d => d.xp);
 
-  const chartDefaults = {
+  const chartOpt = {
     responsive: true,
-    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d0d18', borderColor: '#c4b5fd33', borderWidth: 1, padding: 10, titleColor: '#e9e6f3', bodyColor: '#b8b4ce' } },
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#0a0a0a', borderColor: 'rgba(239,68,68,0.4)', borderWidth: 1, padding: 10, titleColor: '#fafafa', bodyColor: '#d4d4d4' }
+    },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b6783', font: { size: 10, family: 'Inter' }, maxTicksLimit: 10 } },
-      y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b6783', font: { size: 10, family: 'Inter' } }, beginAtZero: true }
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', font: { size: 10, family: 'Inter' }, maxTicksLimit: 10 } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', font: { size: 10, family: 'Inter' } }, beginAtZero: true }
     }
   };
 
   if (state.activityChart) state.activityChart.destroy();
   state.activityChart = new Chart(document.getElementById('activity-chart'), {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        data: activityData,
-        borderColor: '#c4b5fd',
-        backgroundColor: 'rgba(167, 139, 250, 0.1)',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointBackgroundColor: '#f0abfc',
-        pointBorderColor: '#0d0d18',
-        pointBorderWidth: 1,
-        fill: true,
-        tension: 0.35
-      }]
-    },
-    options: chartDefaults
+    data: { labels, datasets: [{
+      data: activityData, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',
+      borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#f87171', fill: true, tension: 0.35
+    }] },
+    options: chartOpt
   });
 
   if (state.xpChart) state.xpChart.destroy();
   state.xpChart = new Chart(document.getElementById('xp-chart'), {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data: xpData,
-        backgroundColor: 'rgba(236, 72, 153, 0.35)',
-        borderColor: '#f0abfc',
-        borderWidth: 1,
-        borderRadius: 3
-      }]
-    },
-    options: chartDefaults
+    data: { labels, datasets: [{
+      data: xpData, backgroundColor: 'rgba(239,68,68,0.4)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 3
+    }] },
+    options: chartOpt
   });
+
+  // === Rituels ===
+  const habitsGrid = document.getElementById('stats-habits-grid');
+  habitsGrid.innerHTML = full.habits.map(h => {
+    const rateClass = h.completionRate30 >= 80 ? 'good' : h.completionRate30 >= 50 ? 'mid' : 'bad';
+    // 7-day dots: today on right
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dotDates = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dotDates.push(d.toISOString().split('T')[0]);
+    }
+    const dots = dotDates.map(date => {
+      const done = h.last7Dates.includes(date);
+      return `<div class="habit-week-dot ${done ? 'done' : ''}" title="${date}"></div>`;
+    }).join('');
+    const extra = h.type === 'number'
+      ? `<div class="habit-stat-row"><span>Moyenne 30j</span><strong>${h.avgValue30 || 0} ${esc(h.unit || '')}</strong></div>`
+      : '';
+    return `
+      <div class="habit-stat-card">
+        <div class="habit-stat-header">
+          <div class="habit-stat-name">${esc(h.name)}</div>
+          <div class="habit-stat-rate ${rateClass}">${h.completionRate30}%</div>
+        </div>
+        <div class="habit-stat-row"><span>7 jours</span><strong>${h.completedLast7} fois (${h.completionRate7}%)</strong></div>
+        <div class="habit-stat-row"><span>30 jours</span><strong>${h.completedLast30} fois</strong></div>
+        ${extra}
+        <div class="habit-stat-row"><span>Dernière</span><strong>${h.lastDoneDate ? formatDate(h.lastDoneDate) : 'jamais'}</strong></div>
+        <div class="habit-week-dots">${dots}</div>
+      </div>
+    `;
+  }).join('');
+
+  // === Salle ===
+  const w = full.workouts;
+  document.getElementById('stats-wk-sessions').textContent = w.sessionsLast7;
+  document.getElementById('stats-wk-target').textContent = `cible ${w.weeklyTarget}`;
+  const wkPct = Math.min((w.sessionsLast7 / w.weeklyTarget) * 100, 100);
+  const wkBar = document.getElementById('stats-wk-bar');
+  wkBar.style.width = wkPct + '%';
+  wkBar.classList.toggle('green', wkPct >= 100);
+  document.getElementById('stats-30-sessions').textContent = w.sessionsLast30;
+  document.getElementById('stats-vol-7').textContent = w.totalVolumeLast7.toLocaleString();
+  document.getElementById('stats-vol-30').textContent = w.totalVolumeLast30.toLocaleString();
+  document.getElementById('stats-avg-dur').textContent = w.avgDurationMin;
+  document.getElementById('stats-sets-30').textContent = w.setsLast30;
+
+  // Top lifts
+  const topEl = document.getElementById('stats-top-lifts');
+  if (!w.topLifts.length) {
+    topEl.innerHTML = '<p class="empty-state">Aucun record encore. Fais ta première séance.</p>';
+  } else {
+    topEl.innerHTML = w.topLifts.map(l => `
+      <div class="top-lift-row">
+        <div class="top-lift-name">${esc(l.exerciseName)}<small>${esc(l.muscleGroup)}</small></div>
+        <div class="top-lift-weight">${l.weight} kg × ${l.reps}</div>
+        <div class="top-lift-date">${l.date ? formatDate(l.date) : ''}</div>
+      </div>
+    `).join('');
+  }
+
+  // Session types
+  const sessTypeEl = document.getElementById('stats-session-types');
+  const types = ['push', 'pull', 'legs', 'upper', 'cardio'];
+  const maxType = Math.max(1, ...Object.values(w.sessionsByType));
+  sessTypeEl.innerHTML = types.map(t => {
+    const n = w.sessionsByType[t] || 0;
+    const pct = (n / maxType) * 100;
+    return `
+      <div class="session-type-bar">
+        <div class="session-type-label">${t}</div>
+        <div class="session-type-track"><div class="session-type-fill" style="width:${pct}%"></div></div>
+        <div class="session-type-count">${n}</div>
+      </div>
+    `;
+  }).join('');
+
+  // === Nutrition ===
+  const n = full.nutrition;
+  document.getElementById('stats-cal-7').textContent = n.avgCalories7;
+  document.getElementById('stats-cal-30').textContent = n.avgCalories30;
+  document.getElementById('stats-cal-target').textContent = n.calorieTarget ? `cible ${n.calorieTarget} kcal` : 'cible non définie';
+  document.getElementById('stats-prot-7').textContent = n.avgProtein7 + ' g';
+  document.getElementById('stats-prot-30').textContent = n.avgProtein30 + ' g';
+  document.getElementById('stats-prot-target').textContent = n.proteinTarget ? `cible ${n.proteinTarget} g` : 'pèse-toi pour calculer';
+  document.getElementById('stats-prot-days-7').textContent = n.daysHitProteinTarget7;
+  document.getElementById('stats-prot-days-7-pct').textContent = n.proteinTarget ? Math.round((n.daysHitProteinTarget7 / 7) * 100) + ' %' : '— %';
+  document.getElementById('stats-prot-days-30').textContent = n.daysHitProteinTarget30;
+  document.getElementById('stats-prot-days-30-pct').textContent = n.proteinTarget ? Math.round((n.daysHitProteinTarget30 / 30) * 100) + ' %' : '— %';
+  document.getElementById('stats-nut-logged-7').textContent = n.daysLogged7;
+  document.getElementById('stats-nut-logged-30').textContent = n.daysLogged30;
+
+  // === Compléments ===
+  const s = full.supplements;
+  document.getElementById('stats-creatine-pct').textContent = s.creatineCompliance30 + ' %';
+  document.getElementById('stats-creatine-days').textContent = `${s.creatineDays30} / 30 jours`;
+  const creBar = document.getElementById('stats-creatine-bar');
+  creBar.style.width = s.creatineCompliance30 + '%';
+  creBar.classList.toggle('green', s.creatineCompliance30 >= 90);
+  document.getElementById('stats-whey-7').textContent = s.wheyIntakesLast7;
+  document.getElementById('stats-whey-30').textContent = s.wheyIntakesLast30;
+
+  // === Physique ===
+  const bw = full.bodyweight;
+  document.getElementById('stats-bw-current').textContent = bw.current ? bw.current + ' kg' : '—';
+  const diff30Str = bw.diff30 === 0 ? 'aucun changement' : (bw.diff30 > 0 ? `+${bw.diff30} kg sur 30j` : `${bw.diff30} kg sur 30j`);
+  document.getElementById('stats-bw-trend').textContent = diff30Str;
+  document.getElementById('stats-bw-7').textContent = bw.diff7 === 0 ? '0' : (bw.diff7 > 0 ? `+${bw.diff7}` : bw.diff7);
+  if (bw.target) {
+    document.getElementById('stats-bw-target-diff').textContent = (bw.targetDiff > 0 ? '+' : '') + bw.targetDiff + ' kg';
+    document.getElementById('stats-bw-target').textContent = `cible ${bw.target} kg`;
+  } else {
+    document.getElementById('stats-bw-target-diff').textContent = '—';
+    document.getElementById('stats-bw-target').textContent = 'cible non définie';
+  }
+  document.getElementById('stats-prot-target-val').textContent = bw.proteinTarget ? bw.proteinTarget + ' g' : '—';
+
+  // BW chart
+  if (state.bwEvolChart) state.bwEvolChart.destroy();
+  if (bw.history.length) {
+    state.bwEvolChart = new Chart(document.getElementById('bw-evol-chart'), {
+      type: 'line',
+      data: {
+        labels: bw.history.map(x => x.date.slice(5)),
+        datasets: [{
+          data: bw.history.map(x => x.weight_kg),
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,0.08)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#f87171',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: chartOpt
+    });
+  }
+
+  // === Heatmap ===
+  const hm = document.getElementById('stats-heatmap');
+  hm.innerHTML = full.heatmap.map(d => {
+    let level = 0;
+    let count = d.habits + (d.workout ? 2 : 0) + (d.nutrition ? 1 : 0);
+    if (count >= 6) level = 4;
+    else if (count >= 4) level = 3;
+    else if (count >= 2) level = 2;
+    else if (count >= 1) level = 1;
+    const parts = [];
+    if (d.habits) parts.push(`${d.habits} rituel${d.habits>1?'s':''}`);
+    if (d.workout) parts.push('séance');
+    if (d.nutrition) parts.push('nutrition');
+    const title = `${formatDate(d.date)} — ${parts.length ? parts.join(' · ') : 'rien'}`;
+    return `<div class="heatmap-day level-${level}" title="${esc(title)}"></div>`;
+  }).join('');
 }
 
 // ─── Achievements ─────────────────────────────────────────────────────────

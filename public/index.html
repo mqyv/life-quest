@@ -6,7 +6,7 @@
   <title>Life Quest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
@@ -58,8 +58,7 @@
     </defs>
   </svg>
 
-  <div class="stars" id="stars"></div>
-  <div class="noise"></div>
+  <div class="bg-grid"></div>
 
   <nav class="sidebar">
     <div class="sidebar-logo">
@@ -93,7 +92,6 @@
     <ul class="nav-links">
       <li><a href="#" class="nav-link active" data-page="dashboard"><svg class="icon"><use href="#i-home"/></svg> Accueil</a></li>
       <li><a href="#" class="nav-link" data-page="habits"><svg class="icon"><use href="#i-sparkle"/></svg> Rituels</a></li>
-      <li><a href="#" class="nav-link" data-page="journal"><svg class="icon"><use href="#i-pen"/></svg> Journal</a></li>
       <li><a href="#" class="nav-link" data-page="fitness"><svg class="icon"><use href="#i-dumbbell"/></svg> Fitness</a></li>
       <li><a href="#" class="nav-link" data-page="goals"><svg class="icon"><use href="#i-target"/></svg> Objectifs</a></li>
       <li><a href="#" class="nav-link" data-page="stats"><svg class="icon"><use href="#i-chart"/></svg> Statistiques</a></li>
@@ -179,14 +177,6 @@
         </div>
       </div>
 
-      <div class="card grocery-card">
-        <div class="card-header">
-          <h2>Prochaine course</h2>
-          <svg class="icon"><use href="#i-utensils"/></svg>
-        </div>
-        <div id="grocery-content"><p class="empty-state">Chargement…</p></div>
-      </div>
-
       <div class="card hadith-card" id="hadith-card">
         <div class="hadith-header">
           <svg class="icon"><use href="#i-quote"/></svg>
@@ -230,8 +220,8 @@
       <div class="habits-grid" id="habits-grid"></div>
     </section>
 
-    <!-- JOURNAL -->
-    <section class="page" id="page-journal">
+    <!-- JOURNAL REMOVED -->
+    <section class="page" id="page-journal" style="display:none;">
       <div class="page-header">
         <div>
           <div class="page-eyebrow">Journal</div>
@@ -512,38 +502,228 @@
       <div class="page-header">
         <div>
           <div class="page-eyebrow">Statistiques</div>
-          <h1 class="page-title">Ce que <em>30 jours</em> révèlent</h1>
-          <p class="page-subtitle">Observer son histoire pour mieux écrire la suite.</p>
+          <h1 class="page-title">Tout <em>mesurer</em></h1>
+          <p class="page-subtitle">Données complètes sur 7 et 30 jours. Repère les angles morts. Optimise.</p>
         </div>
       </div>
 
-      <div class="charts-grid">
-        <div class="card chart-card">
-          <h3>Activité sur 30 jours</h3>
-          <canvas id="activity-chart"></canvas>
+      <!-- APERÇU -->
+      <div class="stats-section">
+        <div class="stats-section-header">Aperçu</div>
+        <div class="bento-grid">
+          <div class="bento-card bento-span-2">
+            <div class="bento-label">Niveau</div>
+            <div class="bento-value" id="stats-level">—</div>
+            <div class="bento-sub" id="stats-xp">— XP total</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Streak actuel</div>
+            <div class="bento-value" id="stats-streak">—</div>
+            <div class="bento-sub">jours consécutifs</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Record streak</div>
+            <div class="bento-value" id="stats-longest">—</div>
+            <div class="bento-sub">jours</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Rituels complétés</div>
+            <div class="bento-value" id="stats-total-habits">—</div>
+            <div class="bento-sub">depuis le début</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Objectifs réussis</div>
+            <div class="bento-value" id="stats-total-goals">—</div>
+            <div class="bento-sub" id="stats-goals-30">— sur 30j</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Séances total</div>
+            <div class="bento-value" id="stats-total-sessions">—</div>
+            <div class="bento-sub" id="stats-sessions-30">— sur 30j</div>
+          </div>
         </div>
-        <div class="card chart-card">
-          <h3>XP gagné par jour</h3>
-          <canvas id="xp-chart"></canvas>
+        <div class="charts-grid">
+          <div class="card chart-card">
+            <h3>Activité 30 jours</h3>
+            <canvas id="activity-chart"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3>XP gagné par jour</h3>
+            <canvas id="xp-chart"></canvas>
+          </div>
         </div>
       </div>
 
-      <div class="stats-summary-grid">
-        <div class="card stat-summary">
-          <div class="summary-value" id="stat-active-days">0</div>
-          <div class="summary-label">Jours actifs</div>
+      <!-- RITUELS -->
+      <div class="stats-section">
+        <div class="stats-section-header">Rituels — taux de complétion</div>
+        <div id="stats-habits-grid" class="habit-stats-grid"></div>
+      </div>
+
+      <!-- SALLE / WORKOUT -->
+      <div class="stats-section">
+        <div class="stats-section-header">Salle</div>
+        <div class="bento-grid">
+          <div class="bento-card">
+            <div class="bento-label">Semaine en cours</div>
+            <div class="bento-value" id="stats-wk-sessions">—</div>
+            <div class="bento-sub" id="stats-wk-target">cible —</div>
+            <div class="bento-bar"><div class="bento-bar-fill" id="stats-wk-bar"></div></div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">30 jours</div>
+            <div class="bento-value" id="stats-30-sessions">—</div>
+            <div class="bento-sub">séances</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Volume 7j</div>
+            <div class="bento-value" id="stats-vol-7">—</div>
+            <div class="bento-sub">kg · reps</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Volume 30j</div>
+            <div class="bento-value" id="stats-vol-30">—</div>
+            <div class="bento-sub">kg · reps</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Durée moyenne</div>
+            <div class="bento-value" id="stats-avg-dur">—</div>
+            <div class="bento-sub">min / séance</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Séries 30j</div>
+            <div class="bento-value" id="stats-sets-30">—</div>
+            <div class="bento-sub">séries totales</div>
+          </div>
         </div>
-        <div class="card stat-summary">
-          <div class="summary-value" id="stat-habits-30">0</div>
-          <div class="summary-label">Rituels (30j)</div>
+        <div class="card">
+          <h3>Records par exercice</h3>
+          <div id="stats-top-lifts"></div>
         </div>
-        <div class="card stat-summary">
-          <div class="summary-value" id="stat-longest">0</div>
-          <div class="summary-label">Streak record</div>
+        <div class="card">
+          <h3>Répartition par type de séance</h3>
+          <div id="stats-session-types"></div>
         </div>
-        <div class="card stat-summary">
-          <div class="summary-value" id="stat-total-xp">0</div>
-          <div class="summary-label">XP total</div>
+      </div>
+
+      <!-- NUTRITION -->
+      <div class="stats-section">
+        <div class="stats-section-header">Nutrition</div>
+        <div class="bento-grid">
+          <div class="bento-card">
+            <div class="bento-label">Calories moy. 7j</div>
+            <div class="bento-value" id="stats-cal-7">—</div>
+            <div class="bento-sub" id="stats-cal-target">cible — kcal</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Calories moy. 30j</div>
+            <div class="bento-value" id="stats-cal-30">—</div>
+            <div class="bento-sub">kcal / jour</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Protéines moy. 7j</div>
+            <div class="bento-value" id="stats-prot-7">—</div>
+            <div class="bento-sub" id="stats-prot-target">cible — g</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Protéines moy. 30j</div>
+            <div class="bento-value" id="stats-prot-30">—</div>
+            <div class="bento-sub">g / jour</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Jours cible 7j</div>
+            <div class="bento-value" id="stats-prot-days-7">—</div>
+            <div class="bento-sub" id="stats-prot-days-7-pct">— %</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Jours cible 30j</div>
+            <div class="bento-value" id="stats-prot-days-30">—</div>
+            <div class="bento-sub" id="stats-prot-days-30-pct">— %</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Jours loggés 7j</div>
+            <div class="bento-value" id="stats-nut-logged-7">—</div>
+            <div class="bento-sub">sur 7</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Jours loggés 30j</div>
+            <div class="bento-value" id="stats-nut-logged-30">—</div>
+            <div class="bento-sub">sur 30</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPLÉMENTS -->
+      <div class="stats-section">
+        <div class="stats-section-header">Compléments</div>
+        <div class="bento-grid">
+          <div class="bento-card bento-span-2">
+            <div class="bento-label">Créatine 30j</div>
+            <div class="bento-value" id="stats-creatine-pct">—</div>
+            <div class="bento-sub" id="stats-creatine-days">— / 30 jours</div>
+            <div class="bento-bar"><div class="bento-bar-fill" id="stats-creatine-bar"></div></div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Whey 7j</div>
+            <div class="bento-value" id="stats-whey-7">—</div>
+            <div class="bento-sub">prises</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Whey 30j</div>
+            <div class="bento-value" id="stats-whey-30">—</div>
+            <div class="bento-sub">prises</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHYSIQUE -->
+      <div class="stats-section">
+        <div class="stats-section-header">Physique</div>
+        <div class="bento-grid">
+          <div class="bento-card bento-span-2">
+            <div class="bento-label">Poids actuel</div>
+            <div class="bento-value" id="stats-bw-current">—</div>
+            <div class="bento-sub" id="stats-bw-trend">— sur 30j</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">7 jours</div>
+            <div class="bento-value" id="stats-bw-7">—</div>
+            <div class="bento-sub">kg</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Vs cible</div>
+            <div class="bento-value" id="stats-bw-target-diff">—</div>
+            <div class="bento-sub" id="stats-bw-target">cible —</div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-label">Cible protéines</div>
+            <div class="bento-value" id="stats-prot-target-val">—</div>
+            <div class="bento-sub">g / jour</div>
+          </div>
+        </div>
+        <div class="card chart-card">
+          <h3>Évolution du poids</h3>
+          <canvas id="bw-evol-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- HEATMAP -->
+      <div class="stats-section">
+        <div class="stats-section-header">Activité totale sur 30 jours</div>
+        <div class="card">
+          <p class="form-help" style="margin-bottom: 12px;">Chaque jour : rituels validés, séance, nutrition. Plus c'est rempli, plus la cellule est rouge.</p>
+          <div id="stats-heatmap" class="stats-heatmap"></div>
+          <div class="heatmap-legend">
+            <span>Moins</span>
+            <div class="heatmap-scale">
+              <div class="heatmap-cell level-0"></div>
+              <div class="heatmap-cell level-1"></div>
+              <div class="heatmap-cell level-2"></div>
+              <div class="heatmap-cell level-3"></div>
+              <div class="heatmap-cell level-4"></div>
+            </div>
+            <span>Plus</span>
+          </div>
         </div>
       </div>
     </section>
@@ -590,12 +770,12 @@
         <div class="form-group">
           <label>Couleur</label>
           <div class="color-picker">
-            <button class="color-opt active" data-color="#a78bfa" style="background:#a78bfa"></button>
-            <button class="color-opt" data-color="#ec4899" style="background:#ec4899"></button>
-            <button class="color-opt" data-color="#67e8f9" style="background:#67e8f9"></button>
-            <button class="color-opt" data-color="#c4b5fd" style="background:#c4b5fd"></button>
-            <button class="color-opt" data-color="#f0abfc" style="background:#f0abfc"></button>
+            <button class="color-opt active" data-color="#ef4444" style="background:#ef4444"></button>
+            <button class="color-opt" data-color="#fb923c" style="background:#fb923c"></button>
             <button class="color-opt" data-color="#fbbf24" style="background:#fbbf24"></button>
+            <button class="color-opt" data-color="#10b981" style="background:#10b981"></button>
+            <button class="color-opt" data-color="#67e8f9" style="background:#67e8f9"></button>
+            <button class="color-opt" data-color="#a78bfa" style="background:#a78bfa"></button>
           </div>
         </div>
       </div>

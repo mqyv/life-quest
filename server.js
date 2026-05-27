@@ -941,6 +941,222 @@ app.get('/api/badges', (req, res) => {
   res.json(BADGES.map(b => ({ id: b.id, name: b.name, desc: b.desc, icon: b.icon, unlocked: user.badges.includes(b.id) })));
 });
 
+// ─── COMPREHENSIVE STATS ─────────────────────────────────────────────────
+app.get('/api/stats/full', (req, res) => {
+  const user = readJSON('user.json');
+  const habits = readJSON('habits.json');
+  const habitLogs = readJSON('habit_logs.json');
+  const sessions = readJSON('workout_sessions.json');
+  const sets = readJSON('workout_sets.json');
+  const exercises = readJSON('exercises.json');
+  const nutrition = readJSON('nutrition.json');
+  const intakes = readJSON('supplement_intakes.json');
+  const bodyweight = readJSON('bodyweight.json');
+  const goals = readJSON('goals.json');
+  const profile = readJSON('profile.json') || {};
+
+  const t = today();
+  const last7 = localDateStr(new Date(Date.now() - 7 * 86400000));
+  const last30 = localDateStr(new Date(Date.now() - 30 * 86400000));
+
+  // Habits
+  const habitStats = habits.map(h => {
+    const eh = applyDynamicHabit(h);
+    const all = habitLogs.filter(l => l.habitId === h.id);
+    const l7 = all.filter(l => l.date >= last7);
+    const l30 = all.filter(l => l.date >= last30);
+    const periodDaily7 = h.frequency === 'daily' ? 7 : 1;
+    const periodDaily30 = h.frequency === 'daily' ? 30 : 4;
+    const hit7 = h.type === 'number'
+      ? l7.filter(l => l.targetHit).length
+      : l7.length;
+    const hit30 = h.type === 'number'
+      ? l30.filter(l => l.targetHit).length
+      : l30.length;
+    const stat = {
+      id: h.id,
+      name: eh.name,
+      type: h.type,
+      frequency: h.frequency,
+      target: eh.target,
+      unit: eh.unit,
+      icon: stockIconForHabit(h.id),
+      completedLast7: hit7,
+      completedLast30: hit30,
+      completionRate7: Math.round((hit7 / periodDaily7) * 100),
+      completionRate30: Math.round((hit30 / periodDaily30) * 100),
+      lastDoneDate: all.length ? all.slice().sort((a, b) => b.date.localeCompare(a.date))[0].date : null,
+      last7Dates: l7.map(l => l.date)
+    };
+    if (h.type === 'number') {
+      const vals7 = l7.map(l => l.value || 0);
+      const vals30 = l30.map(l => l.value || 0);
+      stat.avgValue7 = vals7.length ? Math.round((vals7.reduce((a, b) => a + b, 0) / vals7.length) * 10) / 10 : 0;
+      stat.avgValue30 = vals30.length ? Math.round((vals30.reduce((a, b) => a + b, 0) / vals30.length) * 10) / 10 : 0;
+      stat.totalValue7 = Math.round(vals7.reduce((a, b) => a + b, 0));
+    }
+    return stat;
+  });
+
+  // Workouts
+  const sessLast7 = sessions.filter(s => (s.date || '').split('T')[0] >= last7);
+  const sessLast30 = sessions.filter(s => (s.date || '').split('T')[0] >= last30);
+  const sessIds7 = new Set(sessLast7.map(s => s.id));
+  const sessIds30 = new Set(sessLast30.map(s => s.id));
+  const setsLast7 = sets.filter(s => sessIds7.has(s.session_id));
+  const setsLast30 = sets.filter(s => sessIds30.has(s.session_id));
+
+  const sessionsByType = {};
+  for (const s of sessions) sessionsByType[s.type] = (sessionsByType[s.type] || 0) + 1;
+
+  // Top lifts: best (weight, reps) per exercise
+  const topByExercise = {};
+  for (const s of sets) {
+    const cur = topByExercise[s.exercise_id];
+    if (!cur || (s.weight_kg || 0) > (cur.weight_kg || 0)) {
+      topByExercise[s.exercise_id] = s;
+    }
+  }
+  const topLifts = Object.entries(topByExercise)
+    .map(([exId, set]) => {
+      const ex = exercises.find(e => e.id === exId);
+      const sess = sessions.find(s => s.id === set.session_id);
+      return ex ? {
+        exerciseName: ex.name,
+        muscleGroup: ex.muscle_group,
+        weight: set.weight_kg,
+        reps: set.reps,
+        date: sess ? (sess.date || '').split('T')[0] : null
+      } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 8);
+
+  const totalDur30 = sessLast30.reduce((s, x) => s + (x.duration_min || 0), 0);
+  const workouts = {
+    totalSessions: sessions.length,
+    sessionsLast7: sessLast7.length,
+    sessionsLast30: sessLast30.length,
+    weeklyTarget: profile.weekly_session_target || 4,
+    setsLast7: setsLast7.length,
+    setsLast30: setsLast30.length,
+    avgDurationMin: sessLast30.length ? Math.round(totalDur30 / sessLast30.length) : 0,
+    totalVolumeLast7: Math.round(setsLast7.reduce((s, x) => s + (x.weight_kg || 0) * (x.reps || 0), 0)),
+    totalVolumeLast30: Math.round(setsLast30.reduce((s, x) => s + (x.weight_kg || 0) * (x.reps || 0), 0)),
+    sessionsByType,
+    topLifts
+  };
+
+  // Nutrition
+  const nutLast7 = nutrition.filter(n => n.date >= last7);
+  const nutLast30 = nutrition.filter(n => n.date >= last30);
+  const latestBW = getLatestBodyweight();
+  const proteinTarget = computeProteinTarget(latestBW);
+  const calorieTarget = profile.calorie_target_kcal || null;
+  const avg = (arr, key) => arr.length ? Math.round(arr.reduce((s, x) => s + (x[key] || 0), 0) / arr.length) : 0;
+  const nut = {
+    daysLogged7: nutLast7.length,
+    daysLogged30: nutLast30.length,
+    avgCalories7: avg(nutLast7, 'calories_kcal'),
+    avgCalories30: avg(nutLast30, 'calories_kcal'),
+    avgProtein7: avg(nutLast7, 'protein_g'),
+    avgProtein30: avg(nutLast30, 'protein_g'),
+    avgCarbs30: avg(nutLast30, 'carbs_g'),
+    avgFat30: avg(nutLast30, 'fat_g'),
+    daysHitProteinTarget7: proteinTarget ? nutLast7.filter(n => (n.protein_g || 0) >= proteinTarget).length : 0,
+    daysHitProteinTarget30: proteinTarget ? nutLast30.filter(n => (n.protein_g || 0) >= proteinTarget).length : 0,
+    proteinTarget,
+    calorieTarget
+  };
+
+  // Supplements
+  const intakesLast30 = intakes.filter(i => i.date >= last30);
+  const intakesLast7 = intakes.filter(i => i.date >= last7);
+  const creatineDays30 = new Set(intakesLast30.filter(i => i.type === 'creatine').map(i => i.date)).size;
+  const creatineDays7 = new Set(intakesLast7.filter(i => i.type === 'creatine').map(i => i.date)).size;
+  const supp = {
+    creatineDays30,
+    creatineDays7,
+    creatineCompliance30: Math.round((creatineDays30 / 30) * 100),
+    creatineCompliance7: Math.round((creatineDays7 / 7) * 100),
+    wheyIntakesLast7: intakesLast7.filter(i => i.type === 'whey').length,
+    wheyIntakesLast30: intakesLast30.filter(i => i.type === 'whey').length,
+    creatineDailyG: profile.creatine_daily_g || 5
+  };
+
+  // Bodyweight
+  const bwSorted = [...bodyweight].sort((a, b) => a.date.localeCompare(b.date));
+  const bwLast30 = bwSorted.filter(x => x.date >= last30);
+  const bwLast7 = bwSorted.filter(x => x.date >= last7);
+  const cur = bwSorted.length ? bwSorted[bwSorted.length - 1].weight_kg : null;
+  const bw = {
+    current: cur,
+    oldest30: bwLast30.length ? bwLast30[0].weight_kg : null,
+    diff30: (cur && bwLast30.length > 1) ? Math.round((cur - bwLast30[0].weight_kg) * 10) / 10 : 0,
+    diff7: (cur && bwLast7.length > 1) ? Math.round((cur - bwLast7[0].weight_kg) * 10) / 10 : 0,
+    target: profile.targetWeight || null,
+    targetDiff: (profile.targetWeight && cur) ? Math.round((profile.targetWeight - cur) * 10) / 10 : null,
+    proteinTarget,
+    history: bwSorted.slice(-30)
+  };
+
+  // Goals
+  const goalsCompLast30 = goals.reduce((sum, g) => sum + (g.completedDates || []).filter(d => d >= last30).length, 0);
+  const goalsCompLast7 = goals.reduce((sum, g) => sum + (g.completedDates || []).filter(d => d >= last7).length, 0);
+  const goalsStats = {
+    activeCount: goals.filter(g => !g.archived).length,
+    completedLast7: goalsCompLast7,
+    completedLast30: goalsCompLast30,
+    completedTotal: user.totalGoalsCompleted || 0,
+    byType: {
+      daily: goals.filter(g => g.type === 'daily' && !g.archived).length,
+      weekly: goals.filter(g => g.type === 'weekly' && !g.archived).length,
+      longterm: goals.filter(g => g.type === 'longterm' && !g.archived).length
+    }
+  };
+
+  // Activity heatmap (last 30 days)
+  const heatmap = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = localDateStr(d);
+    const hCount = habitLogs.filter(l => l.date === dateStr).length;
+    const hadSession = sessions.some(s => (s.date || '').split('T')[0] === dateStr);
+    const hadNutrition = nutrition.some(n => n.date === dateStr);
+    heatmap.push({ date: dateStr, habits: hCount, workout: hadSession, nutrition: hadNutrition });
+  }
+
+  res.json({
+    user: {
+      name: user.name,
+      level: calcLevel(user.xp).level,
+      xp: user.xp,
+      streak: user.streak,
+      longestStreak: user.longestStreak,
+      totalEntries: user.totalEntries,
+      totalGoalsCompleted: user.totalGoalsCompleted,
+      totalHabitsCompleted: user.totalHabitsCompleted
+    },
+    habits: habitStats,
+    workouts,
+    nutrition: nut,
+    supplements: supp,
+    bodyweight: bw,
+    goals: goalsStats,
+    heatmap
+  });
+});
+
+function stockIconForHabit(id) {
+  const map = {
+    prayers: 'mosque', gym: 'dumbbell', steps: 'footsteps',
+    room: 'broom', water: 'water', reading: 'book', sleep: 'moon'
+  };
+  return map[id] || 'sparkle';
+}
+
 // ─── HADITHS ─────────────────────────────────────────────────────────────
 const HADITHS = [
   { text: "Les actions ne valent que par les intentions, et chaque personne aura selon son intention.", source: "Rapporté par al-Bukhari et Muslim — Omar ibn al-Khattab" },
